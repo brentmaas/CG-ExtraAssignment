@@ -172,22 +172,21 @@ void SharkPilot(fishRec * fish) {
 	fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
 }
 
-void SharkMiss(int i) {
-	int j;
+void SharkMiss(int i, int NUM_SHARKS) {
 	float avoid, thetal;
 	float X, Y, Z, R;
-
-	for (j = 0; j < NUM_SHARKS; j++) {
+	
+	for (int j = 0;j < NUM_SHARKS;j++) {
 		if (j != i) {
 			X = sharks[j].x - sharks[i].x;
 			Y = sharks[j].y - sharks[i].y;
 			Z = sharks[j].z - sharks[i].z;
-
+			
 			R = sqrt(X * X + Y * Y + Z * Z);
-
+			
 			avoid = 1.0;
 			thetal = sharks[i].theta;
-
+			
 			if (R < SHARKSIZE) {
 				if (Z > 0.0) {
 					sharks[i].theta -= avoid;

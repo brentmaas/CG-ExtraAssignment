@@ -1,3 +1,6 @@
+#ifndef ATLANTIS_HPP
+#define ATLANTIS_HPP
+
 /**
  * (c) Copyright 1993, 1994, Silicon Graphics, Inc.
  * ALL RIGHTS RESERVED
@@ -34,14 +37,15 @@
  *
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
-#define RAD 57.295
-#define RRAD 0.01745
+const float RAD = 57.295;
+const float RRAD = 0.01745;
+const int NUM_DOLPHS = 6;
+const int MIN_SHARKS = 4;
+const int MAX_SHARKS = 128;
+const float SHARKSIZE = 6000;
+const float SHARKSPEED = 100.0;
 
-#define NUM_SHARKS 4
-#define SHARKSIZE 6000
-#define SHARKSPEED 100.0
-
-#define WHALESPEED 250.0
+const float WHALESPEED = 250.0;
 
 typedef struct _fishRec {
     float x, y, z, phi, theta, psi, v;
@@ -51,16 +55,18 @@ typedef struct _fishRec {
     int spurt, attack;
 } fishRec;
 
-extern fishRec sharks[NUM_SHARKS];
+extern fishRec sharks[MAX_SHARKS];
 extern fishRec momWhale;
 extern fishRec babyWhale;
-extern fishRec dolph;
+extern fishRec dolphs[NUM_DOLPHS];
 
 extern void FishTransform(fishRec *);
 extern void FishDetransform(fishRec *);
 extern void WhalePilot(fishRec *);
 extern void SharkPilot(fishRec *);
-extern void SharkMiss(int);
+extern void SharkMiss(int, int);
 extern void DrawWhale(fishRec *);
 extern void DrawShark(fishRec *);
 extern void DrawDolphin(fishRec *);
+
+#endif

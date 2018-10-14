@@ -45,40 +45,59 @@
 #include <math.h>
 #include <GL/glut.h>
 
-fishRec sharks[NUM_SHARKS];
+fishRec sharks[MAX_SHARKS];
 fishRec momWhale;
 fishRec babyWhale;
-fishRec dolph;
+fishRec dolphs[NUM_DOLPHS];
 
 GLboolean moving;
+
+int NUM_SHARKS = MIN_SHARKS;
 
 const float targetFPS = 60.0f;
 
 float camX = 0, camY = 0, camZ = 0, camPhi = 0;
 
+void InitSharkAt(int i){
+	sharks[i].x = 70000.0 + rand() % 6000;
+	sharks[i].y = rand() % 6000;
+	sharks[i].z = rand() % 6000;
+	sharks[i].psi = rand() % 360 - 180.0;
+	sharks[i].v = 1.0;
+}
+
+void InitDolphAt(int i){
+	dolphs[i].x = 30000.0 + rand() % 20000;
+	dolphs[i].y = rand() % 10000;
+	dolphs[i].z = 6000.0 + rand() % 20000;
+	dolphs[i].psi = 90.0;
+	dolphs[i].theta = 90.0;
+	dolphs[i].v = (30.0 + rand() % 10) / 10.0;
+}
+
 void InitFishs(void) {
 	for (int i = 0; i < NUM_SHARKS; i++) {
-		sharks[i].x = 70000.0 + rand() % 6000;
-		sharks[i].y = rand() % 6000;
-		sharks[i].z = rand() % 6000;
-		sharks[i].psi = rand() % 360 - 180.0;
-		sharks[i].v = 1.0;
+		InitSharkAt(i);
 	}
-
-	dolph.x = 30000.0;
-	dolph.y = 0.0;
-	dolph.z = 6000.0;
-	dolph.psi = 90.0;
-	dolph.theta = 0.0;
-	dolph.v = 3.0;
-
+	
+	dolphs[0].x = 30000.0;
+	dolphs[0].y = 0;
+	dolphs[0].z = 6000.0;
+	dolphs[0].psi = 90.0;
+	dolphs[0].theta = 90.0;
+	dolphs[0].v = 3.0;
+	
+	for(int i = 1;i < NUM_DOLPHS;i++){
+		InitDolphAt(i);
+	}
+	
 	momWhale.x = 70000.0;
 	momWhale.y = 0.0;
 	momWhale.z = 0.0;
 	momWhale.psi = 90.0;
 	momWhale.theta = 0.0;
 	momWhale.v = 3.0;
-
+	
 	babyWhale.x = 60000.0;
 	babyWhale.y = -2000.0;
 	babyWhale.z = -2000.0;
@@ -110,7 +129,7 @@ void Init(void) {
 	glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, lmodel_localviewer);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-
+	
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
@@ -134,16 +153,18 @@ void Animate(int value) {
 	if(moving){
 		for (int i = 0; i < NUM_SHARKS; i++) {
 			SharkPilot(&sharks[i]);
-			SharkMiss(i);
+			SharkMiss(i, NUM_SHARKS);
 		}
-		WhalePilot(&dolph);
-		dolph.phi++;
-		glutPostRedisplay();
+		for(int i = 0;i < NUM_DOLPHS;i++){
+			WhalePilot(&dolphs[i]);
+			dolphs[i].phi++;
+		}
 		WhalePilot(&momWhale);
 		momWhale.phi++;
 		WhalePilot(&babyWhale);
 		babyWhale.phi++;
 	}
+	glutPostRedisplay();
 	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
 }
 
@@ -169,14 +190,23 @@ void Key(unsigned char key, int x, int y) {
 		camX += 5000 * sin(-camPhi);
 		break;
 	case 'j':
-		camPhi -= 18 * RRAD;
+		camPhi -= 15 * RRAD;
 		break;
 	case 'k':
 		camZ -= 5000 * cos(-camPhi);
 		camX -= 5000 * sin(-camPhi);
 		break;
 	case 'l':
-		camPhi += 18 * RRAD;
+		camPhi += 15 * RRAD;
+		break;
+	case 's':
+		if(NUM_SHARKS < MAX_SHARKS){
+			InitSharkAt(NUM_SHARKS);
+			NUM_SHARKS++;
+		}
+		break;
+	case 'x':
+		if(NUM_SHARKS > MIN_SHARKS) NUM_SHARKS--;
 		break;
 	case 'z':
 		camY += 5000;
@@ -186,10 +216,9 @@ void Key(unsigned char key, int x, int y) {
 
 void Display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glPushMatrix();
-	glTranslatef(camX, camY, camZ);
+
 	glRotatef(camPhi * RAD, 0.0, 1.0, 0.0);
+	glTranslatef(camX, camY, camZ);
 	
 	for(int i = 0; i < NUM_SHARKS; i++) {
 		FishTransform(&sharks[i]);
@@ -197,9 +226,11 @@ void Display() {
 		FishDetransform(&sharks[i]);
 	}
 	
-	FishTransform(&dolph);
-	DrawDolphin(&dolph);
-	FishDetransform(&dolph);
+	for(int i = 0;i < NUM_DOLPHS;i++){
+		FishTransform(&dolphs[i]);
+		DrawDolphin(&dolphs[i]);
+		FishDetransform(&dolphs[i]);
+	}
 	
 	FishTransform(&momWhale);
 	DrawWhale(&momWhale);
@@ -210,10 +241,9 @@ void Display() {
 	DrawWhale(&babyWhale);
 	glScalef(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.3);
 	FishDetransform(&babyWhale);
-	
-	glRotatef(-camPhi * RAD, 0.0, 1.0, 0.0);
+
 	glTranslatef(-camX, -camY, -camZ);
-	glPopMatrix();
+	glRotatef(-camPhi * RAD, 0.0, 1.0, 0.0);
 	
 	glutSwapBuffers();
 }
@@ -242,7 +272,6 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(&Reshape);
 	glutKeyboardFunc(&Key);
 	moving = GL_TRUE;
-	glutIdleFunc(&Display);
 	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
 	glutCreateMenu(menuSelect);
 	glutAddMenuEntry("Start motion", 1);
