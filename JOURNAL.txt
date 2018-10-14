@@ -1,0 +1,14 @@
+This was one of the original, well known demos from OpenGL
+written by Mark J. Kilgard
+
+Minor changes have been made so that it compiles on Ubuntu.
+
+For the student machines in room 302 at LIAC, 
+
+> make 
+
+should be sufficient to compile.
+
+To run use
+
+> ./atlantis

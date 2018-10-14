@@ -1,37 +1,14 @@
-TARGET := atlantis
-SRC := src
-BUILD := build
-CXXFLAGS := -I$(SRC) -g -std=c++17 -Wall -O3
-LDFLAGS := -lopengl32 -lfreeglut -lglu32
+# This is a simple Makefile for small projects.  When you 
+# type make at the command prompt, it will compile the code.
+# For more depth, see http://www.gnu.org/software/make/manual/make.html
 
-rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard, $d/, $2) $(filter $(subst *, %, $2), $d))
+CC=g++
+CFLAGS=-lfreeglut -lopengl32 -lglu32 #-lglut -lGLU -lGL -lm
 
-SRCS := $(patsubst $(SRC)/%, %, $(call rwildcard, $(SRC)/, *.cpp))
-OBJECTS := $(SRCS:%.cpp=%.o)
+all: main
 
-TOTAL := $(words $(OBJECTS) .)
-progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info [$(words $(PROCESSED))/$(TOTAL)] $1))
-
-vpath %.o $(BUILD)/objects
-vpath %.cpp $(SRC)
-
-all: $(TARGET)
-	@echo Done!
-
-$(TARGET): $(OBJECTS)
-	@$(call progress,Linking $@)
-	@$(CXX) -o $@ $(OBJECTS:%=$(BUILD)/objects/%) $(LDFLAGS)
-
-%.o: %.cpp
-	@$(call progress,Compiling $<)
-	@mkdir -p $(BUILD)/objects/$(dir $@)
-	@$(CXX) -c $(CXXFLAGS) -o $(BUILD)/objects/$@ $<
+main: atlantis.cpp
+	$(CC) -o atlantis atlantis.cpp dolphin.cpp shark.cpp whale.cpp swim.cpp  $(CFLAGS)
 
 clean:
-	@echo Cleaning build files
-	@rm -rf $(BUILD) $(TARGET)
-	
-run: all
-	@./$(TARGET)
-
-.PHONY: clean
+	@rm atlantis.exe
