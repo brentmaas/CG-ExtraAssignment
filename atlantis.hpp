@@ -53,6 +53,9 @@ typedef struct _fishRec {
     float htail, vtail;
     float dtheta;
     int spurt, attack;
+    
+    //Collision box
+    float cx, cy, cz, cw, ch, cd;
 } fishRec;
 
 extern fishRec sharks[MAX_SHARKS];

@@ -63,7 +63,13 @@ void InitSharkAt(int i){
 	sharks[i].y = rand() % 6000;
 	sharks[i].z = rand() % 6000;
 	sharks[i].psi = rand() % 360 - 180.0;
-	sharks[i].v = 1.0;
+	sharks[i].v = (10.0 + rand() % 5) / 10.0;
+	sharks[i].cx = -1500;
+	sharks[i].cy = -2500;
+	sharks[i].cz = -3000;
+	sharks[i].cw = 3000;
+	sharks[i].ch = 5000;
+	sharks[i].cd = 6000;
 }
 
 void InitDolphAt(int i){
@@ -73,6 +79,12 @@ void InitDolphAt(int i){
 	dolphs[i].psi = 90.0;
 	dolphs[i].theta = 90.0;
 	dolphs[i].v = (30.0 + rand() % 10) / 10.0;
+	dolphs[i].cx = -2500;
+	dolphs[i].cy = -2500;
+	dolphs[i].cz = -5000;
+	dolphs[i].cw = 5000;
+	dolphs[i].ch = 5000;
+	dolphs[i].cd = 20000;
 }
 
 void InitFishs(void) {
@@ -80,13 +92,21 @@ void InitFishs(void) {
 		InitSharkAt(i);
 	}
 	
+	//Original dolphin
 	dolphs[0].x = 30000.0;
 	dolphs[0].y = 0;
 	dolphs[0].z = 6000.0;
 	dolphs[0].psi = 90.0;
 	dolphs[0].theta = 90.0;
 	dolphs[0].v = 3.0;
+	dolphs[0].cx = -2500;
+	dolphs[0].cy = -2500;
+	dolphs[0].cz = -5000;
+	dolphs[0].cw = 5000;
+	dolphs[0].ch = 5000;
+	dolphs[0].cd = 20000;
 	
+	//Other dolphins
 	for(int i = 1;i < NUM_DOLPHS;i++){
 		InitDolphAt(i);
 	}
@@ -97,6 +117,12 @@ void InitFishs(void) {
 	momWhale.psi = 90.0;
 	momWhale.theta = 0.0;
 	momWhale.v = 3.0;
+	momWhale.cx = -5000;
+	momWhale.cy = -5000;
+	momWhale.cz = -30000;
+	momWhale.cw = 10000;
+	momWhale.ch = 10000;
+	momWhale.cd = 40000;
 	
 	babyWhale.x = 60000.0;
 	babyWhale.y = -2000.0;
@@ -104,6 +130,12 @@ void InitFishs(void) {
 	babyWhale.psi = 90.0;
 	babyWhale.theta = 0.0;
 	babyWhale.v = 3.0;
+	babyWhale.cx = -2250;
+	babyWhale.cy = -2250;
+	babyWhale.cz = -9000;
+	babyWhale.cw = 4500;
+	babyWhale.ch = 4500;
+	babyWhale.cd = 12000;
 }
 
 void Init(void) {
@@ -171,7 +203,7 @@ void Animate(int value) {
 void Key(unsigned char key, int x, int y) {
 	switch (key) {
 	case 27: /* Esc will quit */
-		exit(1);
+		exit(0);
 		break;
 	case ' ': /* space will advance frame */
 		if (!moving) Animate(0);
@@ -241,7 +273,7 @@ void Display() {
 	DrawWhale(&babyWhale);
 	glScalef(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.3);
 	FishDetransform(&babyWhale);
-
+	
 	glTranslatef(-camX, -camY, -camZ);
 	glRotatef(-camPhi * RAD, 0.0, 1.0, 0.0);
 	
