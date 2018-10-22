@@ -41,7 +41,7 @@ const float RAD = 57.295;
 const float RRAD = 0.01745;
 const int NUM_DOLPHS = 6;
 const int MIN_SHARKS = 4;
-const int MAX_SHARKS = 128;
+const int MAX_SHARKS = 32;
 extern int NUM_SHARKS;
 const float SHARKSIZE = 6000;
 const float SHARKSPEED = 100.0;
@@ -56,9 +56,9 @@ typedef struct _fishRec {
     int spurt, attack, pet = 0, petTransition = 0;
     
     //Collision box
-    //float cx, cy, cz, cw, ch, cd;
+    float cx, cy, cz, cw, ch, cd;
     //Collision sphere
-    float cr, cz;
+    //float cr, cz;
 } fishRec;
 
 extern fishRec sharks[MAX_SHARKS];

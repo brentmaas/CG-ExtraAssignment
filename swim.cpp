@@ -38,8 +38,11 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 #include "atlantis.hpp"
+#include <iostream>
+#include <vector>
+#include <cfloat>
 
-int collisionSingle(fishRec * fish, float x, float y, float z, float theta, float psi, float r, float cz){
+/*int collisionSingle(fishRec * fish, float x, float y, float z, float theta, float psi, float r, float cz){
 	float xf2 = fish->x + fish->speed * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 	float yf2 = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
 	float zf2 = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
@@ -49,11 +52,12 @@ int collisionSingle(fishRec * fish, float x, float y, float z, float theta, floa
 	float fczx = fish->cz * sin(fish->psi) * sin(fish->theta);
 	float fczy = fish->cz * cos(fish->psi) * sin(fish->theta);
 	float fczz = fish->cz * cos(fish->theta);
+	//Collision spheres intersecting && distances between centers decreasing
 	if((xf2 + fczx - x - czx) * (xf2 + fczx - x - czx) + (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy)
-			+ (zf2 + fczz - z - cz) * (zf2 + fczz - z - cz) <= (fish->cr + r) * (fish->cr + r)
-			&& (fish->x + fczx - x - czx) * (fish->x + fczx - x - czx)+ (fish->y + fczy - y - czy) * (fish->y + fczy - y - czy)
-			+ (fish->z + fczz - z - cz) * (fish->z + fczz - z - cz) <= (xf2 + fczx - x - czx) * (xf2 + fczx - x - czx)
-			+ (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy) + (zf2 + fczz - z - cz) * (zf2 + czz - z - cz)) return 1;
+			+ (zf2 + fczz - z - czz) * (zf2 + fczz - z - czz) <= (fish->cr + r) * (fish->cr + r)
+			&& (fish->x + fczx - x - czx) * (fish->x + fczx - x - czx) + (fish->y + fczy - y - czy) * (fish->y + fczy - y - czy)
+			+ (fish->z + fczz - z - czz) * (fish->z + fczz - z - czz) <= (xf2 + fczx - x - czx) * (xf2 + fczx - x - czx)
+			+ (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy) + (zf2 + fczz - z - czz) * (zf2 + czz - z - czz)) return 1;
 	return 0;
 }
 
@@ -67,7 +71,143 @@ bool collisionTest(fishRec * fish, float x, float y, float z){
 	}
 	hits += collisionSingle(&momWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
 	hits += collisionSingle(&babyWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
-	return hits > 1;
+	return hits > 0;
+}*/
+
+int collisionTestSingle(fishRec * fish, fishRec * fish2){
+	//Preliminary check; are the fish moving away from eachother
+	float d = (fish->x - fish2->x) * (fish->x - fish2->x) + (fish->y - fish2->y) * (fish->y - fish2->y) + (fish->z - fish2->z) * (fish->z - fish2->z);
+	float tx = fish->x + fish->speed * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	float ty = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+	float tz = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
+	float tx2 = fish2->x + fish2->speed * fish2->v * cos(fish2->psi / RAD) * cos(fish2->theta / RAD);
+	float ty2 = fish2->y + fish2->speed * fish2->v * sin(fish2->psi / RAD) * cos(fish2->theta / RAD);
+	float tz2 = fish2->z + fish2->speed * fish2->v * sin(fish2->theta / RAD);
+	float d2 = (tx - tx2) * (tx - tx2) + (ty - ty2) * (ty - ty2) + (tz - tz2) * (tz - tz2);
+	std::cout << d2 << " " << d << " " << (d2 > d) << std::endl;
+	if(d2 >= d) return 0;
+	
+	//Defining untransformed boxes
+	std::vector<std::vector<float>> fishColl = std::vector<std::vector<float>>(8);
+	fishColl[0] = {fish->cx, fish->cy, fish->cz};
+	fishColl[1] = {fish->cx + fish->cw, fish->cy, fish->cz};
+	fishColl[2] = {fish->cx, fish->cy + fish->ch, fish->cz};
+	fishColl[3] = {fish->cx + fish->cw, fish->cy + fish->ch, fish->cz};
+	fishColl[4] = {fish->cx, fish->cy, fish->cz + fish->cd};
+	fishColl[5] = {fish->cx + fish->cw, fish->cy, fish->cz + fish->cd};
+	fishColl[6] = {fish->cx, fish->cy + fish->ch, fish->cz + fish->cd};
+	fishColl[7] = {fish->cx + fish->cw, fish->cy + fish->ch, fish->cz + fish->cd};
+	std::vector<std::vector<float>> fish2Coll = std::vector<std::vector<float>>(8);
+	fish2Coll[0] = {fish2->cx, fish2->cy, fish2->cz};
+	fish2Coll[1] = {fish2->cx + fish2->cw, fish2->cy, fish2->cz};
+	fish2Coll[2] = {fish2->cx, fish2->cy + fish2->ch, fish2->cz};
+	fish2Coll[3] = {fish2->cx + fish2->cw, fish2->cy + fish2->ch, fish2->cz};
+	fish2Coll[4] = {fish2->cx, fish2->cy, fish2->cz + fish2->cd};
+	fish2Coll[5] = {fish2->cx + fish2->cw, fish2->cy, fish2->cz + fish2->cd};
+	fish2Coll[6] = {fish2->cx, fish2->cy + fish2->ch, fish2->cz + fish2->cd};
+	fish2Coll[7] = {fish2->cx + fish2->cw, fish2->cy + fish2->ch, fish2->cz + fish2->cd};
+	std::vector<std::vector<int>> planeIndices = std::vector<std::vector<int>>(6);
+	planeIndices[0] = {0, 1, 3, 2};
+	planeIndices[1] = {4, 5, 7, 6};
+	planeIndices[2] = {0, 1, 5, 4};
+	planeIndices[3] = {2, 3, 7, 6};
+	planeIndices[4] = {0, 2, 6, 4};
+	planeIndices[5] = {1, 3, 7, 5};
+	
+	//Translation
+	for(int i = 0;i < 8;i++){
+		fishColl[i][0] -= fish->x;
+		fishColl[i][1] -= fish->y;
+		fishColl[i][2] -= fish->z;
+		fish2Coll[i][0] -= fish2->x;
+		fish2Coll[i][1] -= fish2->y;
+		fish2Coll[i][2] -= fish2->z;
+	}
+	
+	//Psi rotation
+	for(int i = 0;i < 8;i++){
+		float xNew = fishColl[i][0] * cos(fish->psi * RRAD) - fishColl[i][2] * sin(fish->psi * RRAD);
+		float zNew = fishColl[i][0] * sin(fish->psi * RRAD) + fishColl[i][2] * cos(fish->psi * RRAD);
+		fishColl[i][0] = xNew;
+		fishColl[i][2] = zNew;
+		float xNew2 = fish2Coll[i][0] * cos(fish2->psi * RRAD) - fish2Coll[i][2] * sin(fish2->psi * RRAD);
+		float zNew2 = fish2Coll[i][0] * sin(fish2->psi * RRAD) + fish2Coll[i][2] * cos(fish2->psi * RRAD);
+		fish2Coll[i][0] = xNew2;
+		fish2Coll[i][2] = zNew2;
+	}
+	
+	//Theta rotation
+	for(int i = 0;i < 8;i++){
+		float xNew = fishColl[i][0] * cos(fish->theta * RRAD) - fishColl[i][1] * sin(fish->theta * RRAD);
+		float yNew = fishColl[i][0] * sin(fish->theta * RRAD) + fishColl[i][1] * cos(fish->theta * RRAD);
+		fishColl[i][0] = xNew;
+		fishColl[i][1] = yNew;
+		float xNew2 = fish2Coll[i][0] * cos(fish2->theta * RRAD) - fish2Coll[i][1] * sin(fish2->theta * RRAD);
+		float yNew2 = fish2Coll[i][0] * sin(fish2->theta * RRAD) + fish2Coll[i][1] * cos(fish2->theta * RRAD);
+		fish2Coll[i][0] = xNew2;
+		fish2Coll[i][1] = yNew2;
+	}
+	
+	//Phi rotation
+	for(int i = 0;i < 8;i++){
+		float yNew = fishColl[i][1] * cos(fish->phi * RRAD) + fishColl[i][2] * sin(fish->phi * RRAD);
+		float zNew = -fishColl[i][1] * sin(fish->phi * RRAD) + fishColl[i][2] * cos(fish->phi * RRAD);
+		fishColl[i][1] = yNew;
+		fishColl[i][2] = zNew;
+		float yNew2 = fish2Coll[i][1] * cos(fish2->phi * RRAD) + fish2Coll[i][2] * sin(fish2->phi * RRAD);
+		float zNew2 = -fish2Coll[i][1] * sin(fish2->phi * RRAD) + fish2Coll[i][2] * cos(fish2->phi * RRAD);
+		fish2Coll[i][1] = yNew2;
+		fish2Coll[i][2] = zNew2;
+	}
+	
+	//Determine mi
+	float minMdm = FLT_MAX;
+	int bestI = -1;
+	float mx = 0, my = 0, mz = 0;
+	for(int i = 0;i < 6;i++){
+		float mx2 = 0, my2 = 0, mz2 = 0;
+		for(int j = 0;j < 4;j++){
+			mx2 += fishColl[planeIndices[i][j]][0];
+			my2 += fishColl[planeIndices[i][j]][1];
+			mz2 += fishColl[planeIndices[i][j]][2];
+		}
+		float mdm = mx2 * (fish->x - fish2->x) + my2 * (fish->y - fish2->y) + mz2 * (fish->z - fish2->z);
+		if(mdm < minMdm){
+			bestI = i;
+			minMdm = mdm;
+			mx = mx2 / 4;
+			my = my2 / 4;
+			mz = mz2 / 4;
+		}
+	}
+	float m = sqrt(mx * mx + my * my + mz * mz);
+	
+	//Checks
+	float Mx = 0, My = 0, Mz = 0;
+	for(int i = 0;i < 8;i++){
+		Mx += fishColl[i][0];
+		My += fishColl[i][1];
+		Mz += fishColl[i][2];
+	}
+	Mx /= 8;
+	My /= 8;
+	Mz /= 8;
+	float npm = (mx * mx + my * my + mz * mz) / m;
+	if(mx * Mx + my * My + mz * Mz > npm) for(int i = 0;i < 8;i++)
+		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm) return 1;
+	else for(int i = 0;i < 8;i++)
+		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m <= npm) return 1;
+	
+	return 0;
+}
+
+bool collisionTest(fishRec * fish){
+	int hits = 0;
+	for(int i = 0;i < NUM_SHARKS;i++) hits += collisionTestSingle(fish, &sharks[i]) || collisionTestSingle(&sharks[i], fish);
+	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]) || collisionTestSingle(&dolphs[i], fish);
+	hits += collisionTestSingle(fish, &momWhale) || collisionTestSingle(&momWhale, fish);
+	hits += collisionTestSingle(fish, &babyWhale) || collisionTestSingle(&babyWhale, fish);
+	return hits == 0;
 }
 
 void FishTransform(fishRec * fish) {
@@ -91,15 +231,21 @@ void WhalePilot(fishRec * fish) {
 	
 	fish->htail -= fish->v;
 	
-	float tx = fish->x + WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	if(collisionTest(fish)){
+		fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+		fish->y += WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+		fish->z += WHALESPEED * fish->v * sin(fish->theta / RAD);
+	}
+	
+	/*float tx = fish->x + WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 	float ty = fish->y + WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-	float tz = fish->z = WHALESPEED * fish->v * sin(fish->theta / RAD);
+	float tz = fish->z + WHALESPEED * fish->v * sin(fish->theta / RAD);
 	
 	if(!collisionTest(fish, tx, ty, tz)){
 		fish->x = tx;
 		fish->y = ty;
 		fish->z = tz;
-	}
+	}*/
 }
 
 void SharkPilot(fishRec * fish) {
@@ -206,15 +352,21 @@ void SharkPilot(fishRec * fish) {
 			* cos(fish->theta / RAD);
 	fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);*/
 	
-	float tx = fish->x + SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	if(collisionTest(fish)){
+		fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+		fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+		fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
+	}
+	
+	/*float tx = fish->x + SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 	float ty = fish->y + SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-	float tz = fish->z = SHARKSPEED * fish->v * sin(fish->theta / RAD);
+	float tz = fish->z + SHARKSPEED * fish->v * sin(fish->theta / RAD);
 	
 	if(!collisionTest(fish, tx, ty, tz)){
 		fish->x = tx;
 		fish->y = ty;
 		fish->z = tz;
-	}/*else{
+	}*//*else{
 		fish->theta += 10 - 2 * (rand() % 10);
 		fish->psi += 10 - 2 * (rand() % 10);
 	}*/
