@@ -64,12 +64,15 @@ void InitSharkAt(int i){
 	sharks[i].z = rand() % 6000;
 	sharks[i].psi = rand() % 360 - 180.0;
 	sharks[i].v = (10.0 + rand() % 5) / 10.0;
-	sharks[i].cx = -1500;
+	sharks[i].speed = SHARKSPEED;
+	/*sharks[i].cx = -1500;
 	sharks[i].cy = -2500;
 	sharks[i].cz = -3000;
 	sharks[i].cw = 3000;
 	sharks[i].ch = 5000;
-	sharks[i].cd = 6000;
+	sharks[i].cd = 6000;*/
+	sharks[i].cr = 3000;
+	sharks[i].cz = 0;
 }
 
 void InitDolphAt(int i){
@@ -79,12 +82,15 @@ void InitDolphAt(int i){
 	dolphs[i].psi = 90.0;
 	dolphs[i].theta = 90.0;
 	dolphs[i].v = (30.0 + rand() % 10) / 10.0;
-	dolphs[i].cx = -2500;
+	dolphs[i].speed = WHALESPEED;
+	/*dolphs[i].cx = -2500;
 	dolphs[i].cy = -2500;
 	dolphs[i].cz = -5000;
 	dolphs[i].cw = 5000;
 	dolphs[i].ch = 5000;
-	dolphs[i].cd = 20000;
+	dolphs[i].cd = 20000;*/
+	dolphs[i].cr = 10000;
+	dolphs[i].cz = 0;
 }
 
 void InitFishs(void) {
@@ -99,12 +105,15 @@ void InitFishs(void) {
 	dolphs[0].psi = 90.0;
 	dolphs[0].theta = 90.0;
 	dolphs[0].v = 3.0;
-	dolphs[0].cx = -2500;
+	dolphs[0].speed = WHALESPEED;
+	/*dolphs[0].cx = -2500;
 	dolphs[0].cy = -2500;
 	dolphs[0].cz = -5000;
 	dolphs[0].cw = 5000;
 	dolphs[0].ch = 5000;
-	dolphs[0].cd = 20000;
+	dolphs[0].cd = 20000;*/
+	dolphs[0].cr = 10000;
+	dolphs[0].cz = 0;
 	
 	//Other dolphins
 	for(int i = 1;i < NUM_DOLPHS;i++){
@@ -117,12 +126,15 @@ void InitFishs(void) {
 	momWhale.psi = 90.0;
 	momWhale.theta = 0.0;
 	momWhale.v = 3.0;
-	momWhale.cx = -5000;
+	momWhale.speed = WHALESPEED;
+	/*momWhale.cx = -5000;
 	momWhale.cy = -5000;
 	momWhale.cz = -30000;
 	momWhale.cw = 10000;
 	momWhale.ch = 10000;
-	momWhale.cd = 40000;
+	momWhale.cd = 40000;*/
+	momWhale.cr = 20000;
+	momWhale.cz = -10000;
 	
 	babyWhale.x = 60000.0;
 	babyWhale.y = -2000.0;
@@ -130,12 +142,15 @@ void InitFishs(void) {
 	babyWhale.psi = 90.0;
 	babyWhale.theta = 0.0;
 	babyWhale.v = 3.0;
-	babyWhale.cx = -2250;
+	babyWhale.speed = WHALESPEED;
+	/*babyWhale.cx = -2250;
 	babyWhale.cy = -2250;
 	babyWhale.cz = -9000;
 	babyWhale.cw = 4500;
 	babyWhale.ch = 4500;
-	babyWhale.cd = 12000;
+	babyWhale.cd = 12000;*/
+	babyWhale.cr = 6000;
+	babyWhale.cz = -3000;
 }
 
 void Init(void) {
@@ -254,21 +269,41 @@ void Display() {
 	
 	for(int i = 0; i < NUM_SHARKS; i++) {
 		FishTransform(&sharks[i]);
+		/*glScalef(0.5f, 0.5f, 1.0f);
+		glTranslatef(0, 0, sharks[i].cz);
+		glutSolidSphere(sharks[i].cr, 10, 10);
+		glTranslatef(0, 0, -sharks[i].cz);
+		glScalef(2.0f, 2.0f, 1.0f);*/
 		DrawShark(&sharks[i]);
 		FishDetransform(&sharks[i]);
 	}
 	
 	for(int i = 0;i < NUM_DOLPHS;i++){
 		FishTransform(&dolphs[i]);
+		/*glScalef(0.5f, 0.5f, 1.0f);
+		glTranslatef(0, 0, dolphs[i].cz);
+		glutSolidSphere(dolphs[i].cr, 10, 10);
+		glTranslatef(0, 0, -dolphs[i].cz);
+		glScalef(2.0f, 2.0f, 1.0f);*/
 		DrawDolphin(&dolphs[i]);
 		FishDetransform(&dolphs[i]);
 	}
 	
 	FishTransform(&momWhale);
+	/*glScalef(0.5f, 0.5f, 1.0f);
+	glTranslatef(0, 0, momWhale.cz);
+	glutSolidSphere(momWhale.cr, 10, 10);
+	glTranslatef(0, 0, -momWhale.cz);
+	glScalef(2.0f, 2.0f, 1.0f);*/
 	DrawWhale(&momWhale);
 	FishDetransform(&momWhale);
 	
 	FishTransform(&babyWhale);
+	/*glScalef(0.5f, 0.5f, 1.0f);
+	glTranslatef(0, 0, babyWhale.cz);
+	glutSolidSphere(babyWhale.cr, 10, 10);
+	glTranslatef(0, 0, -babyWhale.cz);
+	glScalef(2.0f, 2.0f, 1.0f);*/
 	glScalef(0.45, 0.45, 0.3);
 	DrawWhale(&babyWhale);
 	glScalef(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.3);

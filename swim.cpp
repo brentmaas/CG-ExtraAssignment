@@ -39,6 +39,37 @@
 #include <GL/glut.h>
 #include "atlantis.hpp"
 
+int collisionSingle(fishRec * fish, float x, float y, float z, float theta, float psi, float r, float cz){
+	float xf2 = fish->x + fish->speed * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	float yf2 = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+	float zf2 = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
+	float czx = cz * sin(psi) * sin(theta);
+	float czy = cz * cos(psi) * sin(theta);
+	float czz = cz * cos(theta);
+	float fczx = fish->cz * sin(fish->psi) * sin(fish->theta);
+	float fczy = fish->cz * cos(fish->psi) * sin(fish->theta);
+	float fczz = fish->cz * cos(fish->theta);
+	if((xf2 + fczx - x - czx) * (xf2 + fczx - x - czx) + (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy)
+			+ (zf2 + fczz - z - cz) * (zf2 + fczz - z - cz) <= (fish->cr + r) * (fish->cr + r)
+			&& (fish->x + fczx - x - czx) * (fish->x + fczx - x - czx)+ (fish->y + fczy - y - czy) * (fish->y + fczy - y - czy)
+			+ (fish->z + fczz - z - cz) * (fish->z + fczz - z - cz) <= (xf2 + fczx - x - czx) * (xf2 + fczx - x - czx)
+			+ (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy) + (zf2 + fczz - z - cz) * (zf2 + czz - z - cz)) return 1;
+	return 0;
+}
+
+bool collisionTest(fishRec * fish, float x, float y, float z){
+	int hits = 0;
+	for(int i = 0;i < NUM_SHARKS;i++){
+		hits += collisionSingle(&sharks[i], x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
+	}
+	for(int i = 0;i < NUM_DOLPHS;i++){
+		hits += collisionSingle(&dolphs[i], x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
+	}
+	hits += collisionSingle(&momWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
+	hits += collisionSingle(&babyWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
+	return hits > 1;
+}
+
 void FishTransform(fishRec * fish) {
 	glTranslatef(fish->y, fish->z, -fish->x);
 	glRotatef(-fish->psi, 0.0, 1.0, 0.0);
@@ -60,11 +91,15 @@ void WhalePilot(fishRec * fish) {
 	
 	fish->htail -= fish->v;
 	
-	fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD)
-			* cos(fish->theta / RAD);
-	fish->y += WHALESPEED * fish->v * sin(fish->psi / RAD)
-			* cos(fish->theta / RAD);
-	fish->z += WHALESPEED * fish->v * sin(fish->theta / RAD);
+	float tx = fish->x + WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	float ty = fish->y + WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+	float tz = fish->z = WHALESPEED * fish->v * sin(fish->theta / RAD);
+	
+	if(!collisionTest(fish, tx, ty, tz)){
+		fish->x = tx;
+		fish->y = ty;
+		fish->z = tz;
+	}
 }
 
 void SharkPilot(fishRec * fish) {
@@ -164,12 +199,25 @@ void SharkPilot(fishRec * fish) {
 			fish->v -= 0.05;
 		}
 	}
-
-	fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD)
+	
+	/*fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD)
 			* cos(fish->theta / RAD);
 	fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD)
 			* cos(fish->theta / RAD);
-	fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
+	fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);*/
+	
+	float tx = fish->x + SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+	float ty = fish->y + SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+	float tz = fish->z = SHARKSPEED * fish->v * sin(fish->theta / RAD);
+	
+	if(!collisionTest(fish, tx, ty, tz)){
+		fish->x = tx;
+		fish->y = ty;
+		fish->z = tz;
+	}/*else{
+		fish->theta += 10 - 2 * (rand() % 10);
+		fish->psi += 10 - 2 * (rand() % 10);
+	}*/
 }
 
 void SharkMiss(int i, int NUM_SHARKS) {

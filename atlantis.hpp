@@ -42,20 +42,23 @@ const float RRAD = 0.01745;
 const int NUM_DOLPHS = 6;
 const int MIN_SHARKS = 4;
 const int MAX_SHARKS = 128;
+extern int NUM_SHARKS;
 const float SHARKSIZE = 6000;
 const float SHARKSPEED = 100.0;
 
 const float WHALESPEED = 250.0;
 
 typedef struct _fishRec {
-    float x, y, z, phi, theta, psi, v;
+    float x, y, z, phi, theta, psi, v, speed;
     float xt, yt, zt;
     float htail, vtail;
     float dtheta;
-    int spurt, attack;
+    int spurt, attack, pet = 0, petTransition = 0;
     
     //Collision box
-    float cx, cy, cz, cw, ch, cd;
+    //float cx, cy, cz, cw, ch, cd;
+    //Collision sphere
+    float cr, cz;
 } fishRec;
 
 extern fishRec sharks[MAX_SHARKS];
