@@ -115,12 +115,12 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	
 	//Translation
 	for(int i = 0;i < 8;i++){
-		fishColl[i][0] -= fish->x;
-		fishColl[i][1] -= fish->y;
-		fishColl[i][2] -= fish->z;
-		fish2Coll[i][0] -= fish2->x;
-		fish2Coll[i][1] -= fish2->y;
-		fish2Coll[i][2] -= fish2->z;
+		fishColl[i][0] += fish->x;
+		fishColl[i][1] += fish->y;
+		fishColl[i][2] += fish->z;
+		fish2Coll[i][0] += fish2->x;
+		fish2Coll[i][1] += fish2->y;
+		fish2Coll[i][2] += fish2->z;
 	}
 	
 	//Psi rotation
@@ -159,6 +159,33 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 		fish2Coll[i][2] = zNew2;
 	}
 	
+	//Are fish far from eachother
+	float Mx = 0, My = 0, Mz = 0, Mx2 = 0, My2 = 0, Mz2 = 0;
+	for(int i = 0;i < 8;i++){
+		Mx += fishColl[i][0];
+		My += fishColl[i][1];
+		Mz += fishColl[i][2];
+		Mx2 += fish2Coll[i][0];
+		My2 += fish2Coll[i][1];
+		Mz2 += fish2Coll[i][2];
+	}
+	Mx /= 8;
+	My /= 8;
+	Mz /= 8;
+	Mx2 /= 8;
+	My2 /= 8;
+	Mz2 /= 8;
+	d = (Mx - Mx2) * (Mx - Mx2) + (My - My2) * (My - My2) + (Mz - Mz2) * (Mz - Mz2);
+	d2 = 0;
+	float d3 = 0;
+	for(int i = 0;i < 8;i++){
+		float a2 = (Mx - fishColl[7][0]) * (Mx - fishColl[7][0]) + (My - fishColl[7][1]) * (My - fishColl[7][1]) + (Mz - fishColl[7][2]) * (Mz - fishColl[7][2]);
+		float a3 = (Mx2 - fish2Coll[7][0]) * (Mx2 - fish2Coll[7][0]) + (My2 - fish2Coll[7][1]) * (My2 - fish2Coll[7][1]) + (Mz2 - fish2Coll[7][2]) * (Mz2 - fish2Coll[7][2]);
+		if(a2 > d2) d2 = a2;
+		if(a3 > d3) d3 = a3;
+	}
+	if(sqrt(d) > sqrt(d2) + sqrt(d3)) return 0;
+	
 	//Determine mi
 	float minMdm = FLT_MAX;
 	int bestI = -1;
@@ -182,15 +209,6 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float m = sqrt(mx * mx + my * my + mz * mz);
 	
 	//Checks
-	float Mx = 0, My = 0, Mz = 0;
-	for(int i = 0;i < 8;i++){
-		Mx += fishColl[i][0];
-		My += fishColl[i][1];
-		Mz += fishColl[i][2];
-	}
-	Mx /= 8;
-	My /= 8;
-	Mz /= 8;
 	float npm = (mx * mx + my * my + mz * mz) / m;
 	if(mx * Mx + my * My + mz * Mz > npm) for(int i = 0;i < 8;i++)
 		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm) return 1;
