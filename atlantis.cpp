@@ -66,12 +66,12 @@ void InitSharkAt(int i){
 	sharks[i].psi = rand() % 360 - 180.0;
 	sharks[i].v = (10.0 + rand() % 5) / 10.0;
 	sharks[i].speed = SHARKSPEED;
-	sharks[i].cx = -1500;
-	sharks[i].cy = -2500;
-	sharks[i].cz = -3000;
-	sharks[i].cw = 3000;
-	sharks[i].ch = 5000;
-	sharks[i].cd = 6000;
+	sharks[i].cx = -1000;
+	sharks[i].cy = -1000;
+	sharks[i].cz = -2500;
+	sharks[i].cw = 2000;
+	sharks[i].ch = 2000;
+	sharks[i].cd = 5000;
 	/*sharks[i].cr = 2000;
 	sharks[i].cz = 0;*/
 }
@@ -84,12 +84,12 @@ void InitDolphAt(int i){
 	dolphs[i].theta = 90.0;
 	dolphs[i].v = (30.0 + rand() % 10) / 10.0;
 	dolphs[i].speed = WHALESPEED;
-	dolphs[i].cx = -2500;
-	dolphs[i].cy = -2500;
-	dolphs[i].cz = -5000;
-	dolphs[i].cw = 5000;
-	dolphs[i].ch = 5000;
-	dolphs[i].cd = 20000;
+	dolphs[i].cx = -1500;
+	dolphs[i].cy = -1500;
+	dolphs[i].cz = -4000;
+	dolphs[i].cw = 3000;
+	dolphs[i].ch = 3000;
+	dolphs[i].cd = 9000;
 	/*dolphs[i].cr = 8000;
 	dolphs[i].cz = 0;*/
 }
@@ -107,12 +107,12 @@ void InitFishs(void) {
 	dolphs[0].theta = 90.0;
 	dolphs[0].v = 3.0;
 	dolphs[0].speed = WHALESPEED;
-	dolphs[0].cx = -2500;
-	dolphs[0].cy = -2500;
-	dolphs[0].cz = -5000;
-	dolphs[0].cw = 5000;
-	dolphs[0].ch = 5000;
-	dolphs[0].cd = 20000;
+	dolphs[0].cx = -1500;
+	dolphs[0].cy = -1500;
+	dolphs[0].cz = -4000;
+	dolphs[0].cw = 3000;
+	dolphs[0].ch = 3000;
+	dolphs[0].cd = 9000;
 	/*dolphs[0].cr = 8000;
 	dolphs[0].cz = 0;*/
 	
@@ -128,12 +128,12 @@ void InitFishs(void) {
 	momWhale.theta = 0.0;
 	momWhale.v = 3.0;
 	momWhale.speed = WHALESPEED;
-	momWhale.cx = -5000;
-	momWhale.cy = -5000;
-	momWhale.cz = -30000;
-	momWhale.cw = 10000;
-	momWhale.ch = 10000;
-	momWhale.cd = 40000;
+	momWhale.cx = -3500;
+	momWhale.cy = -3500;
+	momWhale.cz = -25000;
+	momWhale.cw = 7000;
+	momWhale.ch = 7000;
+	momWhale.cd = 30000;
 	/*momWhale.cr = 16000;
 	momWhale.cz = -8000;*/
 	
@@ -144,12 +144,12 @@ void InitFishs(void) {
 	babyWhale.theta = 0.0;
 	babyWhale.v = 3.0;
 	babyWhale.speed = WHALESPEED;
-	babyWhale.cx = -2250;
-	babyWhale.cy = -2250;
-	babyWhale.cz = -9000;
-	babyWhale.cw = 4500;
-	babyWhale.ch = 4500;
-	babyWhale.cd = 12000;
+	babyWhale.cx = -1575;
+	babyWhale.cy = -1575;
+	babyWhale.cz = -7500;
+	babyWhale.cw = 3150;
+	babyWhale.ch = 3150;
+	babyWhale.cd = 9000;
 	/*babyWhale.cr = 5000;
 	babyWhale.cz = -2500;*/
 }
@@ -260,6 +260,47 @@ void Key(unsigned char key, int x, int y) {
 		camY += 5000;
 		break;
 	}
+}
+
+void drawBox(float x, float y, float z, float width, float height, float depth){
+	glBegin(GL_QUADS);
+	//bottom
+	glNormal3f(0, -1, 0);
+	glVertex3f(x, y, z);
+	glVertex3f(x, y, z + depth);
+	glVertex3f(x + width, y, z + depth);
+	glVertex3f(x + width, y, z);
+	//top
+	glNormal3f(0, 1, 0);
+	glVertex3f(x, y + height, z);
+	glVertex3f(x, y + height, z + depth);
+	glVertex3f(x + width, y + height, z + depth);
+	glVertex3f(x + width, y + height, z);
+	//left side
+	glNormal3f(-1, 0, 0);
+	glVertex3f(x, y, z);
+	glVertex3f(x, y + height, z);
+	glVertex3f(x, y + height, z + depth);
+	glVertex3f(x, y, z + depth);
+	//right side
+	glNormal3f(1, 0, 0);
+	glVertex3f(x + width, y, z);
+	glVertex3f(x + width, y + height, z);
+	glVertex3f(x + width, y + height, z + depth);
+	glVertex3f(x + width, y, z + depth);
+	//front
+	glNormal3f(0, 0, 1);
+	glVertex3f(x, y, z + depth);
+	glVertex3f(x, y + height, z + depth);
+	glVertex3f(x + width, y + height, z + depth);
+	glVertex3f(x + width, y, z + depth);
+	//back
+	glNormal3f(0, 0, -1);
+	glVertex3f(x, y, z);
+	glVertex3f(x, y + height, z);
+	glVertex3f(x + width, y + height, z);
+	glVertex3f(x + width, y, z);
+	glEnd();
 }
 
 void Display() {

@@ -84,7 +84,6 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float ty2 = fish2->y + fish2->speed * fish2->v * sin(fish2->psi / RAD) * cos(fish2->theta / RAD);
 	float tz2 = fish2->z + fish2->speed * fish2->v * sin(fish2->theta / RAD);
 	float d2 = (tx - tx2) * (tx - tx2) + (ty - ty2) * (ty - ty2) + (tz - tz2) * (tz - tz2);
-	std::cout << d2 << " " << d << " " << (d2 > d) << std::endl;
 	if(d2 >= d) return 0;
 	
 	//Defining untransformed boxes
@@ -203,10 +202,11 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 
 bool collisionTest(fishRec * fish){
 	int hits = 0;
-	for(int i = 0;i < NUM_SHARKS;i++) hits += collisionTestSingle(fish, &sharks[i]) || collisionTestSingle(&sharks[i], fish);
-	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]) || collisionTestSingle(&dolphs[i], fish);
-	hits += collisionTestSingle(fish, &momWhale) || collisionTestSingle(&momWhale, fish);
-	hits += collisionTestSingle(fish, &babyWhale) || collisionTestSingle(&babyWhale, fish);
+	for(int i = 0;i < NUM_SHARKS;i++) hits += collisionTestSingle(fish, &sharks[i]) * collisionTestSingle(&sharks[i], fish);
+	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]) * collisionTestSingle(&dolphs[i], fish);
+	hits += collisionTestSingle(fish, &momWhale) * collisionTestSingle(&momWhale, fish);
+	hits += collisionTestSingle(fish, &babyWhale) * collisionTestSingle(&babyWhale, fish);
+	std::cout << hits << std::endl;
 	return hits == 0;
 }
 
