@@ -66,6 +66,7 @@ void InitSharkAt(int i){
 	sharks[i].psi = rand() % 360 - 180.0;
 	sharks[i].v = (10.0 + rand() % 5) / 10.0;
 	sharks[i].speed = SHARKSPEED;
+	sharks[i].size = SHARKSIZE;
 	sharks[i].cx = -1000;
 	sharks[i].cy = -1000;
 	sharks[i].cz = -2500;
@@ -84,6 +85,7 @@ void InitDolphAt(int i){
 	dolphs[i].theta = 90.0;
 	dolphs[i].v = (30.0 + rand() % 10) / 10.0;
 	dolphs[i].speed = WHALESPEED;
+	dolphs[i].size = DOLPHSIZE;
 	dolphs[i].cx = -1500;
 	dolphs[i].cy = -1500;
 	dolphs[i].cz = -4000;
@@ -107,6 +109,7 @@ void InitFishs(void) {
 	dolphs[0].theta = 90.0;
 	dolphs[0].v = 3.0;
 	dolphs[0].speed = WHALESPEED;
+	dolphs[0].size = DOLPHSIZE;
 	dolphs[0].cx = -1500;
 	dolphs[0].cy = -1500;
 	dolphs[0].cz = -4000;
@@ -128,6 +131,7 @@ void InitFishs(void) {
 	momWhale.theta = 0.0;
 	momWhale.v = 3.0;
 	momWhale.speed = WHALESPEED;
+	momWhale.size = MOMSIZE;
 	momWhale.cx = -3500;
 	momWhale.cy = -3500;
 	momWhale.cz = -25000;
@@ -144,6 +148,7 @@ void InitFishs(void) {
 	babyWhale.theta = 0.0;
 	babyWhale.v = 3.0;
 	babyWhale.speed = WHALESPEED;
+	babyWhale.size = BABYSIZE;
 	babyWhale.cx = -1575;
 	babyWhale.cy = -1575;
 	babyWhale.cz = -7500;
@@ -201,16 +206,20 @@ void Animate(int value) {
 	if(moving){
 		for (int i = 0; i < NUM_SHARKS; i++) {
 			SharkPilot(&sharks[i]);
-			SharkMiss(i, NUM_SHARKS);
+			//SharkMiss(i, NUM_SHARKS);
+			//fishMiss(&sharks[i]);
 		}
 		for(int i = 0;i < NUM_DOLPHS;i++){
 			WhalePilot(&dolphs[i]);
 			dolphs[i].phi++;
+			fishMiss(&dolphs[i]);
 		}
 		WhalePilot(&momWhale);
 		momWhale.phi++;
+		fishMiss(&momWhale);
 		WhalePilot(&babyWhale);
 		babyWhale.phi++;
+		fishMiss(&babyWhale);
 	}
 	glutPostRedisplay();
 	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
@@ -372,7 +381,7 @@ void menuSelect(int value) {
 }
 
 int main(int argc, char **argv) {
-	glutInitWindowSize(500, 250);
+	glutInitWindowSize(1000, 500);
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutCreateWindow("GLUT Atlantis Demo");

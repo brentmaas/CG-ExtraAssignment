@@ -44,16 +44,21 @@ const int MIN_SHARKS = 4;
 const int MAX_SHARKS = 32;
 extern int NUM_SHARKS;
 const float SHARKSIZE = 6000;
+const float DOLPHSIZE = 10400;
+const float MOMSIZE = 44000;
+const float BABYSIZE = 13200;
 const float SHARKSPEED = 100.0;
-
 const float WHALESPEED = 250.0;
+const float SHARKATTACKRANGE = 100000;
+
+extern float camX, camY, camZ, camPhi;
 
 typedef struct _fishRec {
-    float x, y, z, phi, theta, psi, v, speed;
+    float x, y, z, phi, theta, psi, v, speed, size;
     float xt, yt, zt;
     float htail, vtail;
     float dtheta;
-    int spurt, attack, pet = 0, petTransition = 0;
+    int spurt, attack, pet = 0, petTransition = 0, attackUser = 1;
     
     //Collision box
     float cx, cy, cz, cw, ch, cd;
@@ -70,6 +75,7 @@ extern void FishTransform(fishRec *);
 extern void FishDetransform(fishRec *);
 extern void WhalePilot(fishRec *);
 extern void SharkPilot(fishRec *);
+extern void fishMiss(fishRec *);
 extern void SharkMiss(int, int);
 extern void DrawWhale(fishRec *);
 extern void DrawShark(fishRec *);

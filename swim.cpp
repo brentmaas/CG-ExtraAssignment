@@ -80,10 +80,11 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float tx = fish->x + fish->speed * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 	float ty = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
 	float tz = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
-	float tx2 = fish2->x + fish2->speed * fish2->v * cos(fish2->psi / RAD) * cos(fish2->theta / RAD);
-	float ty2 = fish2->y + fish2->speed * fish2->v * sin(fish2->psi / RAD) * cos(fish2->theta / RAD);
-	float tz2 = fish2->z + fish2->speed * fish2->v * sin(fish2->theta / RAD);
-	float d2 = (tx - tx2) * (tx - tx2) + (ty - ty2) * (ty - ty2) + (tz - tz2) * (tz - tz2);
+	//float tx2 = fish2->x + fish2->speed * fish2->v * cos(fish2->psi / RAD) * cos(fish2->theta / RAD);
+	//float ty2 = fish2->y + fish2->speed * fish2->v * sin(fish2->psi / RAD) * cos(fish2->theta / RAD);
+	//float tz2 = fish2->z + fish2->speed * fish2->v * sin(fish2->theta / RAD);
+	//float d2 = (tx - tx2) * (tx - tx2) + (ty - ty2) * (ty - ty2) + (tz - tz2) * (tz - tz2);
+	float d2 = (tx - fish2->x) * (tx - fish2->x) + (ty - fish2->y) * (ty - fish2->y) + (tz - fish2->z) * (tz - fish2->z);
 	if(d2 >= d) return 0;
 	
 	//Defining untransformed boxes
@@ -188,7 +189,6 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	
 	//Determine mi
 	float minMdm = FLT_MAX;
-	int bestI = -1;
 	float mx = 0, my = 0, mz = 0;
 	for(int i = 0;i < 6;i++){
 		float mx2 = 0, my2 = 0, mz2 = 0;
@@ -199,7 +199,6 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 		}
 		float mdm = mx2 * (fish->x - fish2->x) + my2 * (fish->y - fish2->y) + mz2 * (fish->z - fish2->z);
 		if(mdm < minMdm){
-			bestI = i;
 			minMdm = mdm;
 			mx = mx2 / 4;
 			my = my2 / 4;
@@ -210,9 +209,10 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	
 	//Checks
 	float npm = (mx * mx + my * my + mz * mz) / m;
-	if(mx * Mx + my * My + mz * Mz > npm) for(int i = 0;i < 8;i++)
-		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm) return 1;
-	else for(int i = 0;i < 8;i++)
+	if(mx * Mx + my * My + mz * Mz > npm){
+		for(int i = 0;i < 8;i++)
+			if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm) return 1;
+	}else for(int i = 0;i < 8;i++)
 		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m <= npm) return 1;
 	
 	return 0;
@@ -224,7 +224,6 @@ bool collisionTest(fishRec * fish){
 	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]) * collisionTestSingle(&dolphs[i], fish);
 	hits += collisionTestSingle(fish, &momWhale) * collisionTestSingle(&momWhale, fish);
 	hits += collisionTestSingle(fish, &babyWhale) * collisionTestSingle(&babyWhale, fish);
-	std::cout << hits << std::endl;
 	return hits == 0;
 }
 
@@ -244,7 +243,7 @@ void FishDetransform(fishRec * fish){
 
 void WhalePilot(fishRec * fish) {
 	fish->phi = -20.0;
-	fish->theta = 0.0;
+	//fish->theta = 0.0;
 	fish->psi -= 0.5;
 	
 	fish->htail -= fish->v;
@@ -284,83 +283,104 @@ void SharkPilot(fishRec * fish) {
 	
 	ttheta = RAD * atan(Z / (sqrt(X * X + Y * Y)));
 	
-	if (ttheta > fish->theta + 0.25) {
-		fish->theta += 0.5;
-	} else if (ttheta < fish->theta - 0.25) {
-		fish->theta -= 0.5;
-	}
-	if (fish->theta > 90.0) {
-		fish->theta = 90.0;
-	}
-	if (fish->theta < -90.0) {
-		fish->theta = -90.0;
-	}
-	fish->dtheta = fish->theta - thetal;
-	
-	fish->vtail += (fish->dtheta - fish->vtail) * 0.1;
-	
-	if (fish->vtail > 0.5) {
-		fish->vtail = 0.5;
-	} else if (fish->vtail < -0.5) {
-		fish->vtail = -0.5;
-	}
-	
-	tpsi = RAD * atan2(Y, X);
-	
-	fish->attack = 0;
-	
-	if (fabs(tpsi - fish->psi) < 10.0) {
-		fish->attack = 1;
-	} else if (fabs(tpsi - fish->psi) < 45.0) {
-		if (fish->psi > tpsi) {
-			fish->psi -= 0.5;
-			if (fish->psi < -180.0) {
-				fish->psi += 360.0;
+	if(sqrt((fish->z + camX)*(fish->z + camX) + (fish->y - camY)*(fish->y - camY) + (fish->x - camZ)*(fish->x - camZ)) < SHARKATTACKRANGE * SHARKATTACKRANGE
+			&& rand() % 10 == 0) fish->attackUser = 1;
+	if(fish->attackUser){
+		float tTheta = atan2(fish->y - camY, sqrt((fish->x - camX)*(fish->x - camX) + (fish->z - camZ)*(fish->z - camZ))) * RAD;
+		float tPsi = -atan2(fish->x - camZ, fish->z + camX) * RAD - 90;
+		if(abs(fish->theta - tTheta) < 0.5){
+			fish->theta = tTheta;
+		}else if(fish->theta - tTheta > 0.0){
+			fish->theta -= 0.5;
+		}else{
+			fish->theta += 0.5;
+		}
+		if(abs(fish->psi - tPsi) < 1.0){
+			fish->psi = tPsi;
+		}else if(fish->psi - tPsi > 0.0){
+			fish->psi -= 1.0;
+		}else{
+			fish->psi += 1.0;
+		}
+	}else{
+		if (ttheta > fish->theta + 0.25) {
+			fish->theta += 0.5;
+		} else if (ttheta < fish->theta - 0.25) {
+			fish->theta -= 0.5;
+		}
+		if (fish->theta > 90.0) {
+			fish->theta = 90.0;
+		}
+		if (fish->theta < -90.0) {
+			fish->theta = -90.0;
+		}
+		fish->dtheta = fish->theta - thetal;
+		
+		fish->vtail += (fish->dtheta - fish->vtail) * 0.1;
+		
+		if (fish->vtail > 0.5) {
+			fish->vtail = 0.5;
+		} else if (fish->vtail < -0.5) {
+			fish->vtail = -0.5;
+		}
+		
+		tpsi = RAD * atan2(Y, X);
+		
+		fish->attack = 0;
+		
+		if (fabs(tpsi - fish->psi) < 10.0) {
+			fish->attack = 1;
+		} else if (fabs(tpsi - fish->psi) < 45.0) {
+			if (fish->psi > tpsi) {
+				fish->psi -= 0.5;
+				if (fish->psi < -180.0) {
+					fish->psi += 360.0;
+				}
+			} else if (fish->psi < tpsi) {
+				fish->psi += 0.5;
+				if (fish->psi > 180.0) {
+					fish->psi -= 360.0;
+				}
 			}
-		} else if (fish->psi < tpsi) {
-			fish->psi += 0.5;
+		} else {
+			if (rand() % 100 > 98) {
+				sign = 1 - sign;
+			}
+			fish->psi += sign;
 			if (fish->psi > 180.0) {
 				fish->psi -= 360.0;
 			}
+			if (fish->psi < -180.0) {
+				fish->psi += 360.0;
+			}
 		}
-	} else {
-		if (rand() % 100 > 98) {
-			sign = 1 - sign;
-		}
-		fish->psi += sign;
-		if (fish->psi > 180.0) {
-			fish->psi -= 360.0;
-		}
-		if (fish->psi < -180.0) {
-			fish->psi += 360.0;
-		}
-	}
-
-	if (fish->attack) {
-		if (fish->v < 1.1) {
-			fish->spurt = 1;
-		}
-		if (fish->spurt) {
-			fish->v += 0.2;
-		}
-		if (fish->v > 5.0) {
-			fish->spurt = 0;
-		}
-		if ((fish->v > 1.0) && (!fish->spurt)) {
-			fish->v -= 0.2;
-		}
-	} else {
-		if (!(rand() % 400) && (!fish->spurt)) {
-			fish->spurt = 1;
-		}
-		if (fish->spurt) {
-			fish->v += 0.05;
-		}
-		if (fish->v > 3.0) {
-			fish->spurt = 0;
-		}
-		if ((fish->v > 1.0) && (!fish->spurt)) {
-			fish->v -= 0.05;
+	
+		if (fish->attack) {
+			if (fish->v < 1.1) {
+				fish->spurt = 1;
+			}
+			if (fish->spurt) {
+				fish->v += 0.2;
+			}
+			if (fish->v > 5.0) {
+				fish->spurt = 0;
+			}
+			if ((fish->v > 1.0) && (!fish->spurt)) {
+				fish->v -= 0.2;
+			}
+		} else {
+			if (!(rand() % 400) && (!fish->spurt)) {
+				fish->spurt = 1;
+			}
+			if (fish->spurt) {
+				fish->v += 0.05;
+			}
+			if (fish->v > 3.0) {
+				fish->spurt = 0;
+			}
+			if ((fish->v > 1.0) && (!fish->spurt)) {
+				fish->v -= 0.05;
+			}
 		}
 	}
 	
@@ -388,6 +408,38 @@ void SharkPilot(fishRec * fish) {
 		fish->theta += 10 - 2 * (rand() % 10);
 		fish->psi += 10 - 2 * (rand() % 10);
 	}*/
+	
+	fish->x = camZ + 100000;
+	fish->y = -camX;
+	fish->z = -camY;
+}
+
+void fishMissSingle(fishRec * fish, fishRec * fish2){
+	float avoid, thetal;
+	float X, Y, Z, R;
+	X = fish2->x - fish->x;
+	Y = fish2->y - fish->y;
+	Z = fish2->z - fish->z;
+	
+	R = sqrt(X*X + Y*Y + Z*Z);
+	
+	avoid = 1.0;
+	thetal = fish->theta;
+	
+	if(R < fish->size){
+		if(Z > 0.0) fish->theta -= avoid;
+		else fish->theta += avoid;
+	}else{
+		fish->theta *= 0.95;
+	}
+	fish->dtheta += fish->theta - thetal;
+}
+
+void fishMiss(fishRec * fish){
+	for(int i = 0;i < NUM_SHARKS;i++) fishMissSingle(fish, &sharks[i]);
+	for(int i = 0;i < NUM_DOLPHS;i++) fishMissSingle(fish, &dolphs[i]);
+	fishMissSingle(fish, &momWhale);
+	fishMissSingle(fish, &babyWhale);
 }
 
 void SharkMiss(int i, int NUM_SHARKS) {

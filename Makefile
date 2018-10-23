@@ -8,7 +8,7 @@ CFLAGS=-lfreeglut -lopengl32 -lglu32 #-lglut -lGLU -lGL -lm
 all: main
 
 main: atlantis.cpp
-	$(CC) -o atlantis atlantis.cpp dolphin.cpp shark.cpp whale.cpp swim.cpp  $(CFLAGS)
+	$(CC) -o atlantis atlantis.cpp dolphin.cpp shark.cpp whale.cpp swim.cpp $(CFLAGS) -Wall
 
 clean:
 	@rm atlantis.exe
