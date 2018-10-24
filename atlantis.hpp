@@ -50,7 +50,7 @@ const float BABYSIZE = 13200;
 const float SHARKSPEED = 100.0;
 const float WHALESPEED = 250.0;
 const float SHARKATTACKRANGE = 50000;
-const float SHARKDISENGAGERANGE = 10000;
+const float SHARKDISENGAGERANGE = 5000;
 
 extern float camX, camY, camZ, camPhi;
 
@@ -59,7 +59,7 @@ typedef struct _fishRec {
     float xt, yt, zt;
     float htail, vtail;
     float dtheta;
-    int spurt, attack, pet = 0, petTransition = 0, attackUser = 0;
+    int spurt, attack, pet = 0, petTransition = 0, attackUser = 0, onAttackCooldown = 0;
     
     //Collision box
     float cx, cy, cz, cw, ch, cd;

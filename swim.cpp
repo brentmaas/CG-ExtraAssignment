@@ -301,6 +301,8 @@ void WhalePilot(fishRec * fish) {
 		fish->y = ty;
 		fish->z = tz;
 	}*/
+	
+	fishMiss(fish);
 }
 
 void SharkPilot(fishRec * fish) {
@@ -321,18 +323,25 @@ void SharkPilot(fishRec * fish) {
 	
 	ttheta = RAD * atan(Z / (sqrt(X * X + Y * Y)));
 	
-	float dshark = (fish->z - camX)*(fish->z - camX) + (fish->y - camY)*(fish->y - camY) + (fish->x - camZ)*(fish->x - camZ);
-	//std::cout << sqrt(dshark) << " " << SHARKATTACKRANGE << " " << SHARKDISENGAGERANGE;
-	if(fish->attackUser && dshark > SHARKATTACKRANGE * SHARKATTACKRANGE && rand() % 10 == 0) fish->attackUser = 0;
-	if(fish->attackUser && dshark < SHARKDISENGAGERANGE * SHARKDISENGAGERANGE) fish->attackUser = 0;
+	//float dshark = (fish->z - camX)*(fish->z - camX) + (fish->y - camY)*(fish->y - camY) + (fish->x - camZ)*(fish->x - camZ);
+	float dshark = (fish->z - camZ)*(fish->z - camZ) + (fish->y - camY)*(fish->y - camY) + (fish->x - camX)*(fish->x - camX);
+	//std::cout << sqrt(dshark) << " " << SHARKATTACKRANGE << " " << SHARKDISENGAGERANGE << std::endl;
+	if(fish->attackUser && dshark > SHARKATTACKRANGE * SHARKATTACKRANGE){
+		fish->attackUser = 0;
+		fish->onAttackCooldown = 0;
+	}
+	if(fish->attackUser && dshark < SHARKDISENGAGERANGE * SHARKDISENGAGERANGE){
+		fish->attackUser = 0;
+		fish->onAttackCooldown = 1;
+	}
 	
 	if(dshark < SHARKATTACKRANGE * SHARKATTACKRANGE && dshark > SHARKDISENGAGERANGE * SHARKDISENGAGERANGE && rand() % 10 == 0) fish->attackUser = 1;
 	
 	if(fish->attackUser){
 		//float tTheta = atan2(fish->y - camY, sqrt((fish->x - camX)*(fish->x - camX) + (fish->z - camZ)*(fish->z - camZ))) * RAD;
 		//float tPsi = -atan2(fish->x - camZ, fish->z + camX) * RAD - 90;
-		float tTheta = atan2(fish->y - camY, sqrt((fish->x - camZ)*(fish->x - camZ) + (fish->z - camX)*(fish->z - camX))) * RAD;
-		float tPsi = atan2(fish->z - camX, fish->x - camZ) * RAD + 180;
+		float tTheta = -atan2(fish->z - camZ, sqrt((fish->x - camX)*(fish->x - camX) + (fish->y - camY)*(fish->y - camY))) * RAD;
+		float tPsi = atan2(fish->y - camY, fish->x - camX) * RAD + 180;
 		//std::cout << fish->theta << " " << tTheta << " " << fish->psi << " " << tPsi << std::endl;
 		if(abs(fish->theta - tTheta) < 1.0){
 			fish->theta = tTheta;
@@ -428,6 +437,8 @@ void SharkPilot(fishRec * fish) {
 				fish->v -= 0.05;
 			}
 		}
+		
+		fishMiss(fish);
 	}
 	
 	/*fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD)

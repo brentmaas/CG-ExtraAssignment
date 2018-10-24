@@ -45,6 +45,7 @@
 #include <math.h>
 #include <GL/glut.h>
 #include <vector>
+#include <cfloat>
 
 fishRec sharks[MAX_SHARKS];
 fishRec momWhale;
@@ -207,25 +208,23 @@ void Animate(int value) {
 		for (int i = 0; i < NUM_SHARKS; i++) {
 			SharkPilot(&sharks[i]);
 			//SharkMiss(i, NUM_SHARKS);
-			//fishMiss(&sharks[i]);
 		}
 		for(int i = 0;i < NUM_DOLPHS;i++){
 			WhalePilot(&dolphs[i]);
 			dolphs[i].phi++;
-			fishMiss(&dolphs[i]);
 		}
 		WhalePilot(&momWhale);
 		momWhale.phi++;
-		fishMiss(&momWhale);
 		WhalePilot(&babyWhale);
 		babyWhale.phi++;
-		fishMiss(&babyWhale);
 	}
 	glutPostRedisplay();
 	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
 }
 
 void Key(unsigned char key, int x, int y) {
+	int newPet;
+	float minD;
 	switch (key) {
 	case 27: /* Esc will quit */
 		exit(0);
@@ -234,7 +233,22 @@ void Key(unsigned char key, int x, int y) {
 		if (!moving) Animate(0);
 		break;
 	case 'a':
-		camY -= 5000;
+		camZ += 5000;
+		break;
+	case 'f':
+		newPet = -1;
+		minD = FLT_MAX;
+		for(int i = 0;i < NUM_DOLPHS;i++) if(dolphs[i].pet == 0){
+			float ddolph = (dolphs[i].z - camX)*(dolphs[i].z - camX) + (dolphs[i].y - camY)*(dolphs[i].y - camY) + (dolphs[i].x - camZ)*(dolphs[i].x - camZ);
+			if(ddolph < minD){
+				newPet = i;
+				minD = ddolph;
+			}
+		}
+		if(newPet != -1){
+			dolphs[newPet].pet = 1;
+			dolphs[newPet].petTransition = 1;
+		}
 		break;
 	case 'h':
 		camX = 0;
@@ -243,18 +257,21 @@ void Key(unsigned char key, int x, int y) {
 		camPhi = 0;
 		break;
 	case 'i':
-		camZ += 5000 * cos(-camPhi);
-		camX += 5000 * sin(-camPhi);
+		camX += 5000 * cos(-camPhi);
+		camY -= 5000 * sin(-camPhi);
 		break;
 	case 'j':
 		camPhi -= 15 * RRAD;
 		break;
 	case 'k':
-		camZ -= 5000 * cos(-camPhi);
-		camX -= 5000 * sin(-camPhi);
+		camX -= 5000 * cos(-camPhi);
+		camY += 5000 * sin(-camPhi);
 		break;
 	case 'l':
 		camPhi += 15 * RRAD;
+		break;
+	case 'r':
+		for(int i = 0;i < NUM_DOLPHS;i++) dolphs[i].pet = 0;
 		break;
 	case 's':
 		if(NUM_SHARKS < MAX_SHARKS){
@@ -266,7 +283,7 @@ void Key(unsigned char key, int x, int y) {
 		if(NUM_SHARKS > MIN_SHARKS) NUM_SHARKS--;
 		break;
 	case 'z':
-		camY += 5000;
+		camZ -= 5000;
 		break;
 	}
 }
@@ -316,7 +333,8 @@ void Display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glRotatef(camPhi * RAD, 0.0, 1.0, 0.0);
-	glTranslatef(camX, camY, camZ);
+	//glTranslatef(camX, camY, camZ);
+	glTranslatef(-camY, -camZ, camX);
 	
 	for(int i = 0; i < NUM_SHARKS; i++) {
 		FishTransform(&sharks[i]);
@@ -360,7 +378,8 @@ void Display() {
 	glScalef(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.3);
 	FishDetransform(&babyWhale);
 	
-	glTranslatef(-camX, -camY, -camZ);
+	//glTranslatef(-camX, -camY, -camZ);
+	glTranslatef(camY, camZ, -camX);
 	glRotatef(-camPhi * RAD, 0.0, 1.0, 0.0);
 	
 	glutSwapBuffers();
