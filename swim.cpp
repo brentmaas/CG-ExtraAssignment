@@ -190,6 +190,7 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	//Determine mi
 	float minMdm = FLT_MAX;
 	float mx = 0, my = 0, mz = 0;
+	int bestI = -1;
 	for(int i = 0;i < 6;i++){
 		float mx2 = 0, my2 = 0, mz2 = 0;
 		for(int j = 0;j < 4;j++){
@@ -200,6 +201,7 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 		float mdm = mx2 * (fish->x - fish2->x) + my2 * (fish->y - fish2->y) + mz2 * (fish->z - fish2->z);
 		if(mdm < minMdm){
 			minMdm = mdm;
+			bestI = i;
 			mx = mx2 / 4;
 			my = my2 / 4;
 			mz = mz2 / 4;
@@ -211,9 +213,45 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float npm = (mx * mx + my * my + mz * mz) / m;
 	if(mx * Mx + my * My + mz * Mz > npm){
 		for(int i = 0;i < 8;i++)
-			if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm) return 1;
+			if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm){
+				float px = fishColl[planeIndices[bestI][0]][0];
+				float py = fishColl[planeIndices[bestI][0]][1];
+				float pz = fishColl[planeIndices[bestI][0]][2];
+				float ax = fishColl[planeIndices[bestI][1]][0] - px;
+				float ay = fishColl[planeIndices[bestI][1]][1] - py;
+				float az = fishColl[planeIndices[bestI][1]][2] - pz;
+				float bx = fishColl[planeIndices[bestI][3]][0] - px;
+				float by = fishColl[planeIndices[bestI][3]][1] - py;
+				float bz = fishColl[planeIndices[bestI][3]][2] - pz;
+				float la = sqrt(ax*ax + ay*ay + az*az);
+				float lb = sqrt(bx*bx + by*by + bz*bz);
+				float dvx = fish2Coll[i][0] - px;
+				float dvy = fish2Coll[i][1] - py;
+				float dvz = fish2Coll[i][2] - pz;
+				float a = (dvx * ax + dvy * ay + dvz * az) / (la * la);
+				float b = (dvx * bx + dvy * by + dvz * bz) / (lb * lb);
+				if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1;
+			}
 	}else for(int i = 0;i < 8;i++)
-		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m <= npm) return 1;
+		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m <= npm){
+			float px = fishColl[planeIndices[bestI][0]][0];
+			float py = fishColl[planeIndices[bestI][0]][1];
+			float pz = fishColl[planeIndices[bestI][0]][2];
+			float ax = fishColl[planeIndices[bestI][1]][0] - px;
+			float ay = fishColl[planeIndices[bestI][1]][1] - py;
+			float az = fishColl[planeIndices[bestI][1]][2] - pz;
+			float bx = fishColl[planeIndices[bestI][3]][0] - px;
+			float by = fishColl[planeIndices[bestI][3]][1] - py;
+			float bz = fishColl[planeIndices[bestI][3]][2] - pz;
+			float la = sqrt(ax*ax + ay*ay + az*az);
+			float lb = sqrt(bx*bx + by*by + bz*bz);
+			float dvx = fish2Coll[i][0] - px;
+			float dvy = fish2Coll[i][1] - py;
+			float dvz = fish2Coll[i][2] - pz;
+			float a = (dvx * ax + dvy * ay + dvz * az) / (la * la);
+			float b = (dvx * bx + dvy * by + dvz * bz) / (lb * lb);
+			if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1;
+		}
 	
 	return 0;
 }
@@ -283,25 +321,33 @@ void SharkPilot(fishRec * fish) {
 	
 	ttheta = RAD * atan(Z / (sqrt(X * X + Y * Y)));
 	
-	if(sqrt((fish->z + camX)*(fish->z + camX) + (fish->y - camY)*(fish->y - camY) + (fish->x - camZ)*(fish->x - camZ)) < SHARKATTACKRANGE * SHARKATTACKRANGE
-			&& rand() % 10 == 0) fish->attackUser = 1;
+	float dshark = (fish->z - camX)*(fish->z - camX) + (fish->y - camY)*(fish->y - camY) + (fish->x - camZ)*(fish->x - camZ);
+	//std::cout << sqrt(dshark) << " " << SHARKATTACKRANGE << " " << SHARKDISENGAGERANGE;
+	if(fish->attackUser && dshark > SHARKATTACKRANGE * SHARKATTACKRANGE && rand() % 10 == 0) fish->attackUser = 0;
+	if(fish->attackUser && dshark < SHARKDISENGAGERANGE * SHARKDISENGAGERANGE) fish->attackUser = 0;
+	
+	if(dshark < SHARKATTACKRANGE * SHARKATTACKRANGE && dshark > SHARKDISENGAGERANGE * SHARKDISENGAGERANGE && rand() % 10 == 0) fish->attackUser = 1;
+	
 	if(fish->attackUser){
-		float tTheta = atan2(fish->y - camY, sqrt((fish->x - camX)*(fish->x - camX) + (fish->z - camZ)*(fish->z - camZ))) * RAD;
-		float tPsi = -atan2(fish->x - camZ, fish->z + camX) * RAD - 90;
-		if(abs(fish->theta - tTheta) < 0.5){
+		//float tTheta = atan2(fish->y - camY, sqrt((fish->x - camX)*(fish->x - camX) + (fish->z - camZ)*(fish->z - camZ))) * RAD;
+		//float tPsi = -atan2(fish->x - camZ, fish->z + camX) * RAD - 90;
+		float tTheta = atan2(fish->y - camY, sqrt((fish->x - camZ)*(fish->x - camZ) + (fish->z - camX)*(fish->z - camX))) * RAD;
+		float tPsi = atan2(fish->z - camX, fish->x - camZ) * RAD + 180;
+		//std::cout << fish->theta << " " << tTheta << " " << fish->psi << " " << tPsi << std::endl;
+		//if(abs(fish->theta - tTheta) < 1.0){
 			fish->theta = tTheta;
-		}else if(fish->theta - tTheta > 0.0){
-			fish->theta -= 0.5;
-		}else{
-			fish->theta += 0.5;
-		}
-		if(abs(fish->psi - tPsi) < 1.0){
+		//}else if(fish->theta - tTheta > 0.0){
+		//	fish->theta -= 1.0;
+		//}else{
+		//	fish->theta += 1.0;
+		//}
+		//if(abs(fish->psi - tPsi) < 1.0){
 			fish->psi = tPsi;
-		}else if(fish->psi - tPsi > 0.0){
-			fish->psi -= 1.0;
-		}else{
-			fish->psi += 1.0;
-		}
+		//}else if(fish->psi - tPsi > 0.0){
+		//	fish->psi -= 1.0;
+		//}else{
+		//	fish->psi += 1.0;
+		//}
 	}else{
 		if (ttheta > fish->theta + 0.25) {
 			fish->theta += 0.5;
@@ -409,9 +455,9 @@ void SharkPilot(fishRec * fish) {
 		fish->psi += 10 - 2 * (rand() % 10);
 	}*/
 	
-	fish->x = camZ + 100000;
+	/*fish->x = camZ + 100000;
 	fish->y = -camX;
-	fish->z = -camY;
+	fish->z = -camY;*/
 }
 
 void fishMissSingle(fishRec * fish, fishRec * fish2){

@@ -3,7 +3,7 @@
 # For more depth, see http://www.gnu.org/software/make/manual/make.html
 
 CC=g++
-CFLAGS=-lfreeglut -lopengl32 -lglu32 #-lglut -lGLU -lGL -lm
+CFLAGS=-lfreeglut -lopengl32 -lglu32#-lglut -lGLU -lGL -lm
 
 all: main
 
