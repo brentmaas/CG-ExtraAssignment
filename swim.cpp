@@ -334,20 +334,20 @@ void SharkPilot(fishRec * fish) {
 		float tTheta = atan2(fish->y - camY, sqrt((fish->x - camZ)*(fish->x - camZ) + (fish->z - camX)*(fish->z - camX))) * RAD;
 		float tPsi = atan2(fish->z - camX, fish->x - camZ) * RAD + 180;
 		//std::cout << fish->theta << " " << tTheta << " " << fish->psi << " " << tPsi << std::endl;
-		//if(abs(fish->theta - tTheta) < 1.0){
+		if(abs(fish->theta - tTheta) < 1.0){
 			fish->theta = tTheta;
-		//}else if(fish->theta - tTheta > 0.0){
-		//	fish->theta -= 1.0;
-		//}else{
-		//	fish->theta += 1.0;
-		//}
-		//if(abs(fish->psi - tPsi) < 1.0){
+		}else if(fish->theta - tTheta > 0.0){
+			fish->theta -= 1.0;
+		}else{
+			fish->theta += 1.0;
+		}
+		if(abs(fish->psi - tPsi) < 1.0){
 			fish->psi = tPsi;
-		//}else if(fish->psi - tPsi > 0.0){
-		//	fish->psi -= 1.0;
-		//}else{
-		//	fish->psi += 1.0;
-		//}
+		}else if(fish->psi - tPsi > 0.0){
+			fish->psi -= 1.0;
+		}else{
+			fish->psi += 1.0;
+		}
 	}else{
 		if (ttheta > fish->theta + 0.25) {
 			fish->theta += 0.5;
