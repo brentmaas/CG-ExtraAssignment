@@ -51,6 +51,7 @@ const float SHARKSPEED = 100.0;
 const float WHALESPEED = 250.0;
 const float SHARKATTACKRANGE = 50000;
 const float SHARKDISENGAGERANGE = 5000;
+const float DOLPHTARGETRADIUS = 30000;
 
 extern float camX, camY, camZ, camPhi;
 

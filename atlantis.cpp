@@ -203,19 +203,21 @@ void Reshape(int width, int height) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void Animate(int value) {
-	if(moving){
-		for (int i = 0; i < NUM_SHARKS; i++) {
-			SharkPilot(&sharks[i]);
-		}
-		for(int i = 0;i < NUM_DOLPHS;i++){
-			WhalePilot(&dolphs[i]);
-		}
-		WhalePilot(&momWhale);
-		WhalePilot(&babyWhale);
+void Animate() {
+	for (int i = 0; i < NUM_SHARKS; i++) {
+		SharkPilot(&sharks[i]);
 	}
+	for(int i = 0;i < NUM_DOLPHS;i++){
+		WhalePilot(&dolphs[i]);
+	}
+	WhalePilot(&momWhale);
+	WhalePilot(&babyWhale);
+}
+
+void timer(int value){
+	if(moving) Animate();
 	glutPostRedisplay();
-	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
+	glutTimerFunc(1000.0f / targetFPS, &timer, 0);
 }
 
 void Key(unsigned char key, int x, int y) {
@@ -226,7 +228,7 @@ void Key(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	case ' ': /* space will advance frame */
-		if (!moving) Animate(0);
+		if (!moving) Animate();
 		break;
 	case 'a':
 		camZ += 5000;
@@ -282,47 +284,6 @@ void Key(unsigned char key, int x, int y) {
 		camZ -= 5000;
 		break;
 	}
-}
-
-void drawBox(float x, float y, float z, float width, float height, float depth){
-	glBegin(GL_QUADS);
-	//bottom
-	glNormal3f(0, -1, 0);
-	glVertex3f(x, y, z);
-	glVertex3f(x, y, z + depth);
-	glVertex3f(x + width, y, z + depth);
-	glVertex3f(x + width, y, z);
-	//top
-	glNormal3f(0, 1, 0);
-	glVertex3f(x, y + height, z);
-	glVertex3f(x, y + height, z + depth);
-	glVertex3f(x + width, y + height, z + depth);
-	glVertex3f(x + width, y + height, z);
-	//left side
-	glNormal3f(-1, 0, 0);
-	glVertex3f(x, y, z);
-	glVertex3f(x, y + height, z);
-	glVertex3f(x, y + height, z + depth);
-	glVertex3f(x, y, z + depth);
-	//right side
-	glNormal3f(1, 0, 0);
-	glVertex3f(x + width, y, z);
-	glVertex3f(x + width, y + height, z);
-	glVertex3f(x + width, y + height, z + depth);
-	glVertex3f(x + width, y, z + depth);
-	//front
-	glNormal3f(0, 0, 1);
-	glVertex3f(x, y, z + depth);
-	glVertex3f(x, y + height, z + depth);
-	glVertex3f(x + width, y + height, z + depth);
-	glVertex3f(x + width, y, z + depth);
-	//back
-	glNormal3f(0, 0, -1);
-	glVertex3f(x, y, z);
-	glVertex3f(x, y + height, z);
-	glVertex3f(x + width, y + height, z);
-	glVertex3f(x + width, y, z);
-	glEnd();
 }
 
 void Display() {
@@ -405,7 +366,7 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(&Reshape);
 	glutKeyboardFunc(&Key);
 	moving = GL_TRUE;
-	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);
+	glutTimerFunc(1000.0f / targetFPS, &timer, 0);
 	glutCreateMenu(menuSelect);
 	glutAddMenuEntry("Start motion", 1);
 	glutAddMenuEntry("Stop motion", 2);
