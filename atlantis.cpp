@@ -207,16 +207,12 @@ void Animate(int value) {
 	if(moving){
 		for (int i = 0; i < NUM_SHARKS; i++) {
 			SharkPilot(&sharks[i]);
-			//SharkMiss(i, NUM_SHARKS);
 		}
 		for(int i = 0;i < NUM_DOLPHS;i++){
 			WhalePilot(&dolphs[i]);
-			dolphs[i].phi++;
 		}
 		WhalePilot(&momWhale);
-		momWhale.phi++;
 		WhalePilot(&babyWhale);
-		babyWhale.phi++;
 	}
 	glutPostRedisplay();
 	glutTimerFunc(1000.0f / targetFPS, &Animate, 0);

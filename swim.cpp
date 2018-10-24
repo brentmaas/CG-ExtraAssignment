@@ -173,7 +173,7 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	Mx /= 8;
 	My /= 8;
 	Mz /= 8;
-	Mx2 /= 8;
+	/*Mx2 /= 8;
 	My2 /= 8;
 	Mz2 /= 8;
 	d = (Mx - Mx2) * (Mx - Mx2) + (My - My2) * (My - My2) + (Mz - Mz2) * (Mz - Mz2);
@@ -185,7 +185,7 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 		if(a2 > d2) d2 = a2;
 		if(a3 > d3) d3 = a3;
 	}
-	if(sqrt(d) > sqrt(d2) + sqrt(d3)) return 0;
+	if(sqrt(d) > sqrt(d2) + sqrt(d3)) return 0;*/
 	
 	//Determine mi
 	float minMdm = FLT_MAX;
@@ -280,11 +280,39 @@ void FishDetransform(fishRec * fish){
 }
 
 void WhalePilot(fishRec * fish) {
-	fish->phi = -20.0;
-	//fish->theta = 0.0;
-	fish->psi -= 0.5;
-	
-	fish->htail -= fish->v;
+	if(fish->pet){
+		float tTheta = -atan2(fish->z - camZ, sqrt((fish->x - camX)*(fish->x - camX) + (fish->y - camY)*(fish->y - camY))) * RAD;
+		float tPsi = atan2(fish->y - camY, fish->x - camX) * RAD + 180;
+		if(abs(fish->theta - tTheta) < 1.0){
+			fish->theta = tTheta;
+		}else if(fish->theta - tTheta > 0.0){
+			fish->theta -= 1.0;
+		}else{
+			fish->theta += 1.0;
+		}
+		if(abs(fish->psi - tPsi) < 1.0){
+			fish->psi = tPsi;
+		}else if(fish->psi - tPsi > 0.0){
+			fish->psi -= 1.0;
+		}else{
+			fish->psi += 1.0;
+		}
+		if(abs(fish->phi) < 1.0){
+			fish->phi = 0;
+		}else if(fish->phi > 0.0){
+			fish->phi -= 1.0;
+		}else{
+			fish->phi += 1.0;
+		}
+	}else{
+		fish->phi = -20.0;
+		//fish->theta = 0.0;
+		fish->psi -= 0.5;
+		
+		fish->htail -= fish->v;
+		
+		fish->phi++;
+	}
 	
 	if(collisionTest(fish)){
 		fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
