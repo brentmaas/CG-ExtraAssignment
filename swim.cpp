@@ -42,38 +42,7 @@
 #include <vector>
 #include <cfloat>
 
-/*int collisionSingle(fishRec * fish, float x, float y, float z, float theta, float psi, float r, float cz){
-	float xf2 = fish->x + fish->speed * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-	float yf2 = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-	float zf2 = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
-	float czx = cz * sin(psi) * sin(theta);
-	float czy = cz * cos(psi) * sin(theta);
-	float czz = cz * cos(theta);
-	float fczx = fish->cz * sin(fish->psi) * sin(fish->theta);
-	float fczy = fish->cz * cos(fish->psi) * sin(fish->theta);
-	float fczz = fish->cz * cos(fish->theta);
-	//Collision spheres intersecting && distances between centers decreasing
-	if((xf2 + fczx - x - czx) * (xf2 + fczx - x - czx) + (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy)
-			+ (zf2 + fczz - z - czz) * (zf2 + fczz - z - czz) <= (fish->cr + r) * (fish->cr + r)
-			&& (fish->x + fczx - x - czx) * (fish->x + fczx - x - czx) + (fish->y + fczy - y - czy) * (fish->y + fczy - y - czy)
-			+ (fish->z + fczz - z - czz) * (fish->z + fczz - z - czz) <= (xf2 + fczx - x - czx) * (xf2 + fczx - x - czx)
-			+ (yf2 + fczy - y - czy) * (yf2 + fczy - y - czy) + (zf2 + fczz - z - czz) * (zf2 + czz - z - czz)) return 1;
-	return 0;
-}
-
-bool collisionTest(fishRec * fish, float x, float y, float z){
-	int hits = 0;
-	for(int i = 0;i < NUM_SHARKS;i++){
-		hits += collisionSingle(&sharks[i], x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
-	}
-	for(int i = 0;i < NUM_DOLPHS;i++){
-		hits += collisionSingle(&dolphs[i], x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
-	}
-	hits += collisionSingle(&momWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
-	hits += collisionSingle(&babyWhale, x, y, z, fish->theta, fish->psi, fish->cr, fish->cz);
-	return hits > 0;
-}*/
-
+//Collision test between two fishes
 int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	//Preliminary check; are the fish moving away from eachother
 	float d = (fish->x - fish2->x) * (fish->x - fish2->x) + (fish->y - fish2->y) * (fish->y - fish2->y) + (fish->z - fish2->z) * (fish->z - fish2->z);
@@ -81,9 +50,9 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float ty = fish->y + fish->speed * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
 	float tz = fish->z + fish->speed * fish->v * sin(fish->theta / RAD);
 	float d2 = (tx - fish2->x) * (tx - fish2->x) + (ty - fish2->y) * (ty - fish2->y) + (tz - fish2->z) * (tz - fish2->z);
-	if(d2 >= d) return 0;
+	if(d2 >= d) return 0; //Don't collide if moving away from eachother
 	
-	//Defining untransformed boxes
+	//Defining untransformed hitboxes
 	std::vector<std::vector<float>> fishColl = std::vector<std::vector<float>>(8);
 	fishColl[0] = {fish->cx, fish->cy, fish->cz};
 	fishColl[1] = {fish->cx + fish->cw, fish->cy, fish->cz};
@@ -156,36 +125,20 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 		fish2Coll[i][2] = zNew2;
 	}
 	
-	//Are fish far from eachother
-	float Mx = 0, My = 0, Mz = 0;//, Mx2 = 0, My2 = 0, Mz2 = 0;
+	//Determine centre of hitbox
+	float Mx = 0, My = 0, Mz = 0;
 	for(int i = 0;i < 8;i++){
 		Mx += fishColl[i][0];
 		My += fishColl[i][1];
 		Mz += fishColl[i][2];
-		/*Mx2 += fish2Coll[i][0];
-		My2 += fish2Coll[i][1];
-		Mz2 += fish2Coll[i][2];*/
 	}
 	Mx /= 8;
 	My /= 8;
 	Mz /= 8;
-	/*Mx2 /= 8;
-	My2 /= 8;
-	Mz2 /= 8;
-	d = (Mx - Mx2) * (Mx - Mx2) + (My - My2) * (My - My2) + (Mz - Mz2) * (Mz - Mz2);
-	d2 = 0;
-	float d3 = 0;
-	for(int i = 0;i < 8;i++){
-		float a2 = (Mx - fishColl[7][0]) * (Mx - fishColl[7][0]) + (My - fishColl[7][1]) * (My - fishColl[7][1]) + (Mz - fishColl[7][2]) * (Mz - fishColl[7][2]);
-		float a3 = (Mx2 - fish2Coll[7][0]) * (Mx2 - fish2Coll[7][0]) + (My2 - fish2Coll[7][1]) * (My2 - fish2Coll[7][1]) + (Mz2 - fish2Coll[7][2]) * (Mz2 - fish2Coll[7][2]);
-		if(a2 > d2) d2 = a2;
-		if(a3 > d3) d3 = a3;
-	}
-	if(sqrt(d) > sqrt(d2) + sqrt(d3)) return 0;*/
 	
-	//Determine mi
+	//Determine plane of hitbox between two centres
 	float minMdm = FLT_MAX;
-	float mx = 0, my = 0, mz = 0;
+	float mx = 0, my = 0, mz = 0; //Vector from centre of hitbox to centre of hitplane
 	int bestI = -1;
 	for(int i = 0;i < 6;i++){
 		float mx2 = 0, my2 = 0, mz2 = 0;
@@ -194,6 +147,8 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 			my2 += fishColl[planeIndices[i][j]][1];
 			mz2 += fishColl[planeIndices[i][j]][2];
 		}
+		//The hitplane for which the dot product of the centre of the hitplane and the relative position
+		//of the first fish relative to the second fish is minimal is the hitplane between the fishes
 		float mdm = mx2 * (fish->x - fish2->x) + my2 * (fish->y - fish2->y) + mz2 * (fish->z - fish2->z);
 		if(mdm < minMdm){
 			minMdm = mdm;
@@ -206,10 +161,16 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 	float m = sqrt(mx * mx + my * my + mz * mz);
 	
 	//Checks
+	//Dot product between hitplane centre vector and hitplane outwards normal vector
+	//The plane will be described by nx * x + ny * y + nz * z = npm
 	float npm = (mx * mx + my * my + mz * mz) / m;
+	//If the position of the first fish is on one side of the plane, and all vertices of the second fish's
+	//hitbox are on the other side of the plane, they are not colliding (separating axes theorem)
 	if(mx * Mx + my * My + mz * Mz > npm){
 		for(int i = 0;i < 8;i++)
 			if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m >= npm){
+				//If one second hitbox vertex is on the same side of the plane as the first fish's centre
+				//transform the vertex on the plane and check if it is within the plane's bounds (0 <= a,b <= 1)
 				float px = fishColl[planeIndices[bestI][0]][0];
 				float py = fishColl[planeIndices[bestI][0]][1];
 				float pz = fishColl[planeIndices[bestI][0]][2];
@@ -226,10 +187,12 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 				float dvz = fish2Coll[i][2] - pz;
 				float a = (dvx * ax + dvy * ay + dvz * az) / (la * la);
 				float b = (dvx * bx + dvy * by + dvz * bz) / (lb * lb);
-				if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1;
+				if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1; //The fishes collided
 			}
 	}else for(int i = 0;i < 8;i++)
 		if((mx * fish2Coll[i][0] + my * fish2Coll[i][1] + mz * fish2Coll[i][2]) / m <= npm){
+			//If one second hitbox vertex is on the same side of the plane as the first fish's centre
+			//transform the vertex on the plane and check if it is within the plane's bounds (0 <= a,b <= 1)
 			float px = fishColl[planeIndices[bestI][0]][0];
 			float py = fishColl[planeIndices[bestI][0]][1];
 			float pz = fishColl[planeIndices[bestI][0]][2];
@@ -246,21 +209,23 @@ int collisionTestSingle(fishRec * fish, fishRec * fish2){
 			float dvz = fish2Coll[i][2] - pz;
 			float a = (dvx * ax + dvy * ay + dvz * az) / (la * la);
 			float b = (dvx * bx + dvy * by + dvz * bz) / (lb * lb);
-			if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1;
+			if(a >= 0 && a <= 1 && b >= 0 && b <= 1) return 1; //The fishes collided
 		}
 	
-	return 0;
+	return 0; //The fishes did not collide
 }
 
+//Full collision of fish
 bool collisionTest(fishRec * fish){
 	int hits = 0;
-	for(int i = 0;i < NUM_SHARKS;i++) hits += collisionTestSingle(fish, &sharks[i]);// * collisionTestSingle(&sharks[i], fish);
-	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]);// * collisionTestSingle(&dolphs[i], fish);
-	hits += collisionTestSingle(fish, &momWhale);// * collisionTestSingle(&momWhale, fish);
-	hits += collisionTestSingle(fish, &babyWhale);// * collisionTestSingle(&babyWhale, fish);
-	return hits == 0;
+	for(int i = 0;i < NUM_SHARKS;i++) hits += collisionTestSingle(fish, &sharks[i]);
+	for(int i = 0;i < NUM_DOLPHS;i++) hits += collisionTestSingle(fish, &dolphs[i]);
+	hits += collisionTestSingle(fish, &momWhale);
+	hits += collisionTestSingle(fish, &babyWhale);
+	return hits == 0; //If no hits have been detected, it has not collided
 }
 
+//Transform to fish's coordinates
 void FishTransform(fishRec * fish) {
 	glTranslatef(fish->y, fish->z, -fish->x);
 	glRotatef(-fish->psi, 0.0, 1.0, 0.0);
@@ -268,6 +233,7 @@ void FishTransform(fishRec * fish) {
 	glRotatef(-fish->phi, 0.0, 0.0, 1.0);
 }
 
+//Revert transform to fish's coordinates
 void FishDetransform(fishRec * fish){
 	glRotatef(fish->phi, 0.0, 0.0, 1.0);
 	glRotatef(-fish->theta, 1.0, 0.0, 0.0);
@@ -275,20 +241,27 @@ void FishDetransform(fishRec * fish){
 	glTranslatef(-fish->y, -fish->z, fish->x);
 }
 
+//Whale animation
 void WhalePilot(fishRec * fish) {
-	if(fish->pet){
+	if(fish->pet){ //Dolphin only, if it is a pet
 		float d2 = (fish->x - camX) * (fish->x - camX) + (fish->y - camY) * (fish->y - camY) + (fish->z - camZ) * (fish->z - camZ);
+		//If within target range, stop transition
 		if(fish->petTransition && d2 < DOLPHTARGETRADIUS * DOLPHTARGETRADIUS) fish->petTransition = 0;
+		//If far outside target range, start transition again
 		if(!fish->petTransition && d2 > 1.5 * DOLPHTARGETRADIUS * DOLPHTARGETRADIUS) fish->petTransition = 1;
+		//If nearly at target radius, rotate to get into a circle
 		if(fish->petTransition && d2 < 2 * DOLPHTARGETRADIUS * DOLPHTARGETRADIUS){
 			fish->psi += 2;
 			
+			//Try to remain at the same level as the user
 			if(abs(fish->z - camZ) < 100) fish->z = camZ;
 			else if(fish->z - camZ > 100) fish->z -= 100;
 			else fish->z += 100;
-		}else if(fish->petTransition){
+		}else if(fish->petTransition){ //If transitioning from far away, move right at the user
+			//Target theta, psi
 			float tTheta = -atan2(fish->z - camZ, sqrt((fish->x - camX)*(fish->x - camX) + (fish->y - camY)*(fish->y - camY))) * RAD;
 			float tPsi = atan2(fish->y - camY, fish->x - camX) * RAD + 180;
+			//Move to target theta
 			if(abs(fish->theta - tTheta) < 1.0){
 				fish->theta = 2 * tTheta;
 			}else if(fish->theta - 2 * tTheta > 0.0){
@@ -296,11 +269,9 @@ void WhalePilot(fishRec * fish) {
 			}else{
 				fish->theta += 1.0;
 			}
+			//Move to target psi
 			float dpsi = fish->psi - tPsi;
 			while(dpsi < 0) dpsi += 360;
-			//if(abs(dpsi - 360) < abs(dpsi)) dpsi -= 360;
-			//if(abs(dpsi + 360) > abs(dpsi)) dpsi += 360;
-			//std::cout << fish->psi << " " << tPsi << " " << dpsi << std::endl;
 			if(abs(dpsi) < 1.0){
 				fish->psi = tPsi;
 			}else if(dpsi > 0.0){
@@ -308,6 +279,7 @@ void WhalePilot(fishRec * fish) {
 			}else{
 				fish->psi += 1.0;
 			}
+			//Rotate upright
 			if(abs(fish->phi) < 1.0){
 				fish->phi = 0;
 			}else if(fish->phi > 0.0){
@@ -315,7 +287,7 @@ void WhalePilot(fishRec * fish) {
 			}else{
 				fish->phi += 1.0;
 			}
-		}else{
+		}else{ //If about at the target radius, move in circles
 			if(abs(fish->phi - 20.0) < 1.0){
 				fish->phi = 20.0;
 			}else if(fish->phi - 20.0 > 0.0){
@@ -327,14 +299,17 @@ void WhalePilot(fishRec * fish) {
 			
 			fish->phi++;
 			
+			//Try to remain at the same level as the user
 			if(abs(fish->z - camZ) < 100) fish->z = camZ;
 			else if(fish->z - camZ > 100) fish->z -= 100;
 			else fish->z += 100;
 			
+			//If slightly outside the target radius, move more strongly inwards
 			if(d2 > 1.1 * DOLPHTARGETRADIUS * DOLPHTARGETRADIUS) fish->psi -= 1;
+			//If slightly inside the target radius, move less strongly inwards
 			else if(d2 < 0.9 * DOLPHTARGETRADIUS * DOLPHTARGETRADIUS) fish->psi += 1;
 		}
-	}else{
+	}else{ //Original behaviour
 		if(abs(fish->phi - 20.0) < 1.0){
 			fish->phi = 20.0;
 		}else if(fish->phi - 20.0 > 0.0){
@@ -349,25 +324,18 @@ void WhalePilot(fishRec * fish) {
 	
 	fish->htail -= fish->v;
 	
+	//Move if collision allows it
 	if(collisionTest(fish)){
 		fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 		fish->y += WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
 		fish->z += WHALESPEED * fish->v * sin(fish->theta / RAD);
 	}
 	
-	/*float tx = fish->x + WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-	float ty = fish->y + WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-	float tz = fish->z + WHALESPEED * fish->v * sin(fish->theta / RAD);
-	
-	if(!collisionTest(fish, tx, ty, tz)){
-		fish->x = tx;
-		fish->y = ty;
-		fish->z = tz;
-	}*/
-	
+	//Collision avoidance
 	fishMiss(fish);
 }
 
+//Shark animation
 void SharkPilot(fishRec * fish) {
 	static int sign = 1;
 	float X, Y, Z, tpsi, ttheta, thetal;
@@ -387,18 +355,21 @@ void SharkPilot(fishRec * fish) {
 	ttheta = RAD * atan(Z / (sqrt(X * X + Y * Y)));
 	
 	float dshark = (fish->z - camZ)*(fish->z - camZ) + (fish->y - camY)*(fish->y - camY) + (fish->x - camX)*(fish->x - camX);
+	//If attacking user, but user is too far away, stop attacking without cooldown
 	if(fish->attackUser && dshark > SHARKATTACKRANGE * SHARKATTACKRANGE){
 		fish->attackUser = 0;
 		fish->onAttackCooldown = 0;
 	}
+	//If close enough that attack is finished, stop attacking with cooldown
 	if(fish->attackUser && dshark < SHARKDISENGAGERANGE * SHARKDISENGAGERANGE){
 		fish->attackUser = 0;
 		fish->onAttackCooldown = 1;
 	}
 	
+	//If within attack range, but outside disengage range, 1 in 10 chance it will start attacking
 	if(dshark < SHARKATTACKRANGE * SHARKATTACKRANGE && dshark > SHARKDISENGAGERANGE * SHARKDISENGAGERANGE && rand() % 10 == 0) fish->attackUser = 1;
 	
-	if(fish->attackUser){
+	if(fish->attackUser){ //If attacking, move straight at the user
 		float tTheta = -atan2(fish->z - camZ, sqrt((fish->x - camX)*(fish->x - camX) + (fish->y - camY)*(fish->y - camY))) * RAD;
 		float tPsi = atan2(fish->y - camY, fish->x - camX) * RAD + 180;
 		if(abs(fish->theta - tTheta) < 1.0){
@@ -415,7 +386,7 @@ void SharkPilot(fishRec * fish) {
 		}else{
 			fish->psi += 1.0;
 		}
-	}else{
+	}else{ //Original behaviour
 		if (ttheta > fish->theta + 0.25) {
 			fish->theta += 0.5;
 		} else if (ttheta < fish->theta - 0.25) {
@@ -499,12 +470,7 @@ void SharkPilot(fishRec * fish) {
 		fishMiss(fish);
 	}
 	
-	/*fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD)
-			* cos(fish->theta / RAD);
-	fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD)
-			* cos(fish->theta / RAD);
-	fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);*/
-	
+	//Move if collision allows it
 	if(collisionTest(fish)){
 		fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
 		fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
@@ -512,6 +478,7 @@ void SharkPilot(fishRec * fish) {
 	}
 }
 
+//Collision avoidance between two fishes (adaptation of original SharkMiss
 void fishMissSingle(fishRec * fish, fishRec * fish2){
 	float avoid, thetal;
 	float X, Y, Z, R;
@@ -528,41 +495,15 @@ void fishMissSingle(fishRec * fish, fishRec * fish2){
 		if(Z > 0.0) fish->theta -= avoid;
 		else fish->theta += avoid;
 	}else{
-		fish->theta *= 0.95;
+		fish->theta *= 0.95; //Theta decay to make sure whales don't make backflips at an increasing rate
 	}
 	fish->dtheta += fish->theta - thetal;
 }
 
+//Full collision avoidance of fish
 void fishMiss(fishRec * fish){
 	for(int i = 0;i < NUM_SHARKS;i++) fishMissSingle(fish, &sharks[i]);
 	for(int i = 0;i < NUM_DOLPHS;i++) fishMissSingle(fish, &dolphs[i]);
 	fishMissSingle(fish, &momWhale);
 	fishMissSingle(fish, &babyWhale);
-}
-
-void SharkMiss(int i, int NUM_SHARKS) {
-	float avoid, thetal;
-	float X, Y, Z, R;
-	
-	for (int j = 0;j < NUM_SHARKS;j++) {
-		if (j != i) {
-			X = sharks[j].x - sharks[i].x;
-			Y = sharks[j].y - sharks[i].y;
-			Z = sharks[j].z - sharks[i].z;
-			
-			R = sqrt(X * X + Y * Y + Z * Z);
-			
-			avoid = 1.0;
-			thetal = sharks[i].theta;
-			
-			if (R < SHARKSIZE) {
-				if (Z > 0.0) {
-					sharks[i].theta -= avoid;
-				} else {
-					sharks[i].theta += avoid;
-				}
-			}
-			sharks[i].dtheta += (sharks[i].theta - thetal);
-		}
-	}
 }

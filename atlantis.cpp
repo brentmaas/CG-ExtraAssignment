@@ -46,7 +46,9 @@
 #include <GL/glut.h>
 #include <vector>
 #include <cfloat>
+const float E = 2.71828182846f;
 
+//Fishes
 fishRec sharks[MAX_SHARKS];
 fishRec momWhale;
 fishRec babyWhale;
@@ -58,8 +60,10 @@ int NUM_SHARKS = MIN_SHARKS;
 
 const float targetFPS = 60.0f;
 
-float camX = 0, camY = 0, camZ = 0, camPhi = 0;
+//Camera parameters
+float camX = 0, camY = 0, camZ = 0, camPhi = 0, camTargetPhi = 0;
 
+//Initialise a shark at shark[i]
 void InitSharkAt(int i){
 	sharks[i].x = 70000.0 + rand() % 6000;
 	sharks[i].y = rand() % 6000;
@@ -74,10 +78,9 @@ void InitSharkAt(int i){
 	sharks[i].cw = 2000;
 	sharks[i].ch = 2000;
 	sharks[i].cd = 5000;
-	/*sharks[i].cr = 2000;
-	sharks[i].cz = 0;*/
 }
 
+//Initialise a dolphin at dolphs[i]
 void InitDolphAt(int i){
 	dolphs[i].x = 30000.0 + rand() % 20000;
 	dolphs[i].y = rand() % 10000;
@@ -93,11 +96,11 @@ void InitDolphAt(int i){
 	dolphs[i].cw = 3000;
 	dolphs[i].ch = 3000;
 	dolphs[i].cd = 9000;
-	/*dolphs[i].cr = 8000;
-	dolphs[i].cz = 0;*/
 }
 
-void InitFishs(void) {
+//Initialise fishes
+void InitFishes(void) {
+	//Sharks
 	for (int i = 0; i < NUM_SHARKS; i++) {
 		InitSharkAt(i);
 	}
@@ -117,14 +120,13 @@ void InitFishs(void) {
 	dolphs[0].cw = 3000;
 	dolphs[0].ch = 3000;
 	dolphs[0].cd = 9000;
-	/*dolphs[0].cr = 8000;
-	dolphs[0].cz = 0;*/
 	
 	//Other dolphins
 	for(int i = 1;i < NUM_DOLPHS;i++){
 		InitDolphAt(i);
 	}
 	
+	//Big whale
 	momWhale.x = 70000.0;
 	momWhale.y = 0.0;
 	momWhale.z = 0.0;
@@ -139,9 +141,8 @@ void InitFishs(void) {
 	momWhale.cw = 7000;
 	momWhale.ch = 7000;
 	momWhale.cd = 30000;
-	/*momWhale.cr = 16000;
-	momWhale.cz = -8000;*/
 	
+	//Small whale
 	babyWhale.x = 60000.0;
 	babyWhale.y = -2000.0;
 	babyWhale.z = -2000.0;
@@ -156,10 +157,9 @@ void InitFishs(void) {
 	babyWhale.cw = 3150;
 	babyWhale.ch = 3150;
 	babyWhale.cd = 9000;
-	/*babyWhale.cr = 5000;
-	babyWhale.cz = -2500;*/
 }
 
+//Initialisation function
 void Init(void) {
 	static float ambient[] = { 0.1, 0.1, 0.1, 1.0 };
 	static float diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -189,20 +189,22 @@ void Init(void) {
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	
-	InitFishs();
+	InitFishes();
 	
 	glClearColor(0.0, 0.5, 0.9, 0.0);
 }
 
+//Reshaping function
 void Reshape(int width, int height) {
 	glViewport(0, 0, width, height);
-
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(400.0, (float) width / height, 1.0, 400000.0);
 	glMatrixMode(GL_MODELVIEW);
 }
 
+//Animation function
 void Animate() {
 	for (int i = 0; i < NUM_SHARKS; i++) {
 		SharkPilot(&sharks[i]);
@@ -214,26 +216,33 @@ void Animate() {
 	WhalePilot(&babyWhale);
 }
 
+//Timer function
 void timer(int value){
 	if(moving) Animate();
+	//Move camera
+	if(abs(camTargetPhi - camPhi) < CAMSPEED / targetFPS) camPhi = camTargetPhi;
+	else if(abs(camTargetPhi - camPhi) < CAMSPEED) camPhi += (camTargetPhi - camPhi) / abs(camTargetPhi - camPhi) * CAMSPEED / targetFPS;
+	else camPhi += (camTargetPhi - camPhi) / targetFPS;
 	glutPostRedisplay();
 	glutTimerFunc(1000.0f / targetFPS, &timer, 0);
 }
 
+//Keyboard function
 void Key(unsigned char key, int x, int y) {
 	int newPet;
 	float minD;
 	switch (key) {
-	case 27: /* Esc will quit */
+	case 27: //Quit (ESC)
 		exit(0);
 		break;
-	case ' ': /* space will advance frame */
+	case ' ': //Advance frame if stopped
 		if (!moving) Animate();
 		break;
-	case 'a':
+	case 'a': //Move camera upwards
 		camZ += 5000;
 		break;
-	case 'f':
+	case 'f': //Make nearest non-pet dolphin a pet
+		//Find nearest non-pet dolphin
 		newPet = -1;
 		minD = FLT_MAX;
 		for(int i = 0;i < NUM_DOLPHS;i++) if(dolphs[i].pet == 0){
@@ -243,105 +252,94 @@ void Key(unsigned char key, int x, int y) {
 				minD = ddolph;
 			}
 		}
+		//If a dolphin was found, set it as a new pet
 		if(newPet != -1){
 			dolphs[newPet].pet = 1;
 			dolphs[newPet].petTransition = 1;
 		}
 		break;
-	case 'h':
+	case 'h': //Reset camera
 		camX = 0;
 		camY = 0;
 		camZ = 0;
 		camPhi = 0;
 		break;
-	case 'i':
+	case 'i': //Move camera forwards
 		camX += 5000 * cos(-camPhi);
 		camY -= 5000 * sin(-camPhi);
 		break;
-	case 'j':
-		camPhi -= 15 * RRAD;
+	case 'j': //Rotate camera left
+		//camPhi -= 15 * RRAD;
+		camTargetPhi -= 15 * RRAD;
 		break;
-	case 'k':
+	case 'k': //Move camera backwards
 		camX -= 5000 * cos(-camPhi);
 		camY += 5000 * sin(-camPhi);
 		break;
-	case 'l':
-		camPhi += 15 * RRAD;
+	case 'l': //Rotate camera right
+		//camPhi += 15 * RRAD;
+		camTargetPhi += 15 * RRAD;
 		break;
-	case 'r':
+	case 'r': //Reset dolphin pets
 		for(int i = 0;i < NUM_DOLPHS;i++) dolphs[i].pet = 0;
 		break;
-	case 's':
+	case 's': //Add a shark
 		if(NUM_SHARKS < MAX_SHARKS){
 			InitSharkAt(NUM_SHARKS);
 			NUM_SHARKS++;
 		}
 		break;
-	case 'x':
+	case 'x': //Remove latest shark
 		if(NUM_SHARKS > MIN_SHARKS) NUM_SHARKS--;
 		break;
-	case 'z':
+	case 'z': //Move camera downwards
 		camZ -= 5000;
 		break;
 	}
 }
 
+//Draw function
 void Display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
+	//Apply camera
 	glRotatef(camPhi * RAD, 0.0, 1.0, 0.0);
-	//glTranslatef(camX, camY, camZ);
 	glTranslatef(-camY, -camZ, camX);
 	
+	//Draw sharks
 	for(int i = 0; i < NUM_SHARKS; i++) {
 		FishTransform(&sharks[i]);
-		/*glScalef(0.5f, 0.5f, 1.0f);
-		glTranslatef(0, 0, sharks[i].cz);
-		glutSolidSphere(sharks[i].cr, 10, 10);
-		glTranslatef(0, 0, -sharks[i].cz);
-		glScalef(2.0f, 2.0f, 1.0f);*/
 		DrawShark(&sharks[i]);
 		FishDetransform(&sharks[i]);
 	}
 	
+	//Draw dolphins
 	for(int i = 0;i < NUM_DOLPHS;i++){
 		FishTransform(&dolphs[i]);
-		/*glScalef(0.5f, 0.5f, 1.0f);
-		glTranslatef(0, 0, dolphs[i].cz);
-		glutSolidSphere(dolphs[i].cr, 10, 10);
-		glTranslatef(0, 0, -dolphs[i].cz);
-		glScalef(2.0f, 2.0f, 1.0f);*/
 		DrawDolphin(&dolphs[i]);
 		FishDetransform(&dolphs[i]);
 	}
 	
+	//Draw big whale
 	FishTransform(&momWhale);
-	/*glScalef(0.5f, 0.5f, 1.0f);
-	glTranslatef(0, 0, momWhale.cz);
-	glutSolidSphere(momWhale.cr, 10, 10);
-	glTranslatef(0, 0, -momWhale.cz);
-	glScalef(2.0f, 2.0f, 1.0f);*/
 	DrawWhale(&momWhale);
 	FishDetransform(&momWhale);
 	
+	//Draw small whale
 	FishTransform(&babyWhale);
-	/*glScalef(0.5f, 0.5f, 1.0f);
-	glTranslatef(0, 0, babyWhale.cz);
-	glutSolidSphere(babyWhale.cr, 10, 10);
-	glTranslatef(0, 0, -babyWhale.cz);
-	glScalef(2.0f, 2.0f, 1.0f);*/
 	glScalef(0.45, 0.45, 0.3);
 	DrawWhale(&babyWhale);
 	glScalef(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.3);
 	FishDetransform(&babyWhale);
 	
-	//glTranslatef(-camX, -camY, -camZ);
+	//Revert camera
 	glTranslatef(camY, camZ, -camX);
 	glRotatef(-camPhi * RAD, 0.0, 1.0, 0.0);
 	
 	glutSwapBuffers();
 }
 
+//Menu function
 void menuSelect(int value) {
 	switch (value) {
 	case 1:
@@ -356,8 +354,9 @@ void menuSelect(int value) {
 	}
 }
 
+//Main function
 int main(int argc, char **argv) {
-	glutInitWindowSize(1000, 500);
+	glutInitWindowSize(500, 250);
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutCreateWindow("GLUT Atlantis Demo");

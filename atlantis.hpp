@@ -53,21 +53,29 @@ const float SHARKATTACKRANGE = 50000;
 const float SHARKDISENGAGERANGE = 5000;
 const float DOLPHTARGETRADIUS = 30000;
 
-extern float camX, camY, camZ, camPhi;
+//Camera parameters
+extern float camX, camY, camZ, camPhi, camTargetPhi;
+const float CAMSPEED = 90 * RRAD;
 
+//Fish data
 typedef struct _fishRec {
     float x, y, z, phi, theta, psi, v, speed, size;
     float xt, yt, zt;
     float htail, vtail;
     float dtheta;
-    int spurt, attack, pet = 0, petTransition = 0, attackUser = 0, onAttackCooldown = 0;
+    int spurt, attack;
+    
+    //Pet parameters
+    int pet = 0, petTransition = 0;
+    
+    //Shark attack parameters
+    int attackUser = 0, onAttackCooldown = 0;
     
     //Collision box
     float cx, cy, cz, cw, ch, cd;
-    //Collision sphere
-    //float cr, cz;
 } fishRec;
 
+//Fishes
 extern fishRec sharks[MAX_SHARKS];
 extern fishRec momWhale;
 extern fishRec babyWhale;
