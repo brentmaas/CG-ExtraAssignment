@@ -171,8 +171,6 @@ void Init(void) {
 	static float lmodel_ambient[] = { 0.4, 0.4, 0.4, 1.0 };
 	static float lmodel_localviewer[] = { 0.0 };
 	
-	glFrontFace(GL_CW);
-	
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	
