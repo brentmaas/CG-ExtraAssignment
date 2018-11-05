@@ -217,7 +217,7 @@ void Animate() {
 //Timer function
 void timer(int value){
 	if(moving) Animate();
-	//Move camera smoothly
+	//Move camera
 	if(abs(camTargetPhi - camPhi) < CAMSPEED / targetFPS) camPhi = camTargetPhi;
 	else if(abs(camTargetPhi - camPhi) < CAMSPEED) camPhi += (camTargetPhi - camPhi) / abs(camTargetPhi - camPhi) * CAMSPEED / targetFPS;
 	else camPhi += (camTargetPhi - camPhi) / targetFPS;
@@ -261,13 +261,13 @@ void Key(unsigned char key, int x, int y) {
 		camY = 0;
 		camZ = 0;
 		camPhi = 0;
-		camTargetPhi = 0;
 		break;
 	case 'i': //Move camera forwards
 		camX += 5000 * cos(-camPhi);
 		camY -= 5000 * sin(-camPhi);
 		break;
 	case 'j': //Rotate camera left
+		//camPhi -= 15 * RRAD;
 		camTargetPhi -= 15 * RRAD;
 		break;
 	case 'k': //Move camera backwards
@@ -275,6 +275,7 @@ void Key(unsigned char key, int x, int y) {
 		camY += 5000 * sin(-camPhi);
 		break;
 	case 'l': //Rotate camera right
+		//camPhi += 15 * RRAD;
 		camTargetPhi += 15 * RRAD;
 		break;
 	case 'r': //Reset dolphin pets
