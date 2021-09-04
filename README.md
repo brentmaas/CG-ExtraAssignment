@@ -1,1 +1,1 @@
-CG Extra Assignment
+Extra Assignment for the course Computer Graphics
